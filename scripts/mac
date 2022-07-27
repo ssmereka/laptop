@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+
+# Directory where all coding projects will be cloned and stored.
+code_directory="$HOME/code"
+# Directory where a local copy of the Laptop repository will be cloned and stored.
+laptop_repo_directory="$code_directory/laptop"
+# Directory where local Laptop configurations are stored
+laptop_local_directory="$laptop_repo_directory/local"
+
+configure_git() {
+    log "🪛 Configuring Git"
+    # Get the user's GitHub information from 1Password
+    git_email=$(op item get GitHub --fields email)
+    git_name=$(op item get GitHub --fields name)
+    github_username=$(op item get GitHub --fields username)
+
+    # Create the .gitconfig file from the template
+    dot_gitconfig="$laptop_local_directory/.gitconfig"
+    create_from_template "$laptop_repo_directory/templates/.gitconfig" "$dot_gitconfig"
+
+    # Replace the templates variables using the information from 1Password
+    sed -i '' "s|GIT_EMAIL|${git_email}|" "$dot_gitconfig"
+    sed -i '' "s|GIT_NAME|${git_name}|" "$dot_gitconfig"
+    sed -i '' "s|GITHUB_USERNAME|${github_username}|" "$dot_gitconfig"
+
+    # Symbolically link the .gitconfig to the proper location.
+    ln -sf "$dot_gitconfig" "$HOME/.gitconfig"    
+}
+
+configure_ssh() {
+    log "🪛 Configuring SSH"
+    # Create the default SSH directory (if it doesn't already exist)
+    # and configure SSH to lookup SSH keys in 1Password
+    mkdir -p $HOME/.ssh/
+    ln -sf "$laptop_repo_directory/dotfiles/.ssh_config" "$HOME/.ssh/config"
+}
+
+configure_zsh() {
+    log "🪛 Configuring ZSH"
+    # Symbolicially link the ZSH config.
+    ln -sf "$laptop_repo_directory/dotfiles/.zshrc" "$HOME/.zshrc"
+}
+
+create_from_template() {
+    source=$1
+    destination=$2
+
+    destination_directory="$(dirname "${VAR}")"
+    mkdir -p "$destination_directory"
+
+    # Check if a file at the destination exists.
+    if [ ! -f "$destination" ]; then
+        # Destination doesn't exist, create a new file from the source
+        cp "$source" "$destination"
+    fi
+}
+
+install_apps() {
+    brew bundle --file=- <<EOF
+    cask '1password-cli'
+EOF
+}
+
+install_or_update_homebrew() {
+    if [[ $(command -v brew) == "" ]]; then
+        log "🍺 Installing Hombrew"
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    else
+        log "🍺 Updating Homebrew"
+        brew update --force # https://github.com/Homebrew/brew/issues/1151
+    fi
+}
+
+log() {
+    echo -e $1
+}
+
+main() {
+    log "\n🚀 Setting up your laptop.\n"
+    install_or_update_homebrew
+    install_apps
+
+    configure_git
+    configure_ssh
+    configure_zsh
+
+    log "\n🎉 Done!\n"
+}
+
+# Run this script
+main

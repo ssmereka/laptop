@@ -7,6 +7,10 @@ Inspired by [Thoughtbot](https://github.com/thoughtbot/laptop).
 
 ## Install 
 
-```bash
-curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/mac | bash
-```
+1. Download, install, and login to [1Password](https://downloads.1password.com/mac/1Password.zip)
+
+2. Run the Laptop script
+
+    ```bash
+    curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install | bash
+    ```
