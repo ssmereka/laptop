@@ -54,8 +54,11 @@ alias .....='cd ../../../..'
 alias k='kubectl'
 alias kcontext='kubectl config use-context'
 
+## Laptop
+alias laptop-update='curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install | bash'
+
 ## Utility Alias
-myip='curl ipinfo.io/ip'
+alias myip='curl ipinfo.io/ip'
 
 ## Methods
 
