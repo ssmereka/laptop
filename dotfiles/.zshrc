@@ -37,19 +37,30 @@ if test -f "$PATH_TO_RVM"; then
     echo "Added RVM bin to the user's path \"$PATH\"."
 fi
 
-## Bash Alias
+## GO
+[[ -s ~/.gvm/scripts/gvm ]] && . ~/.gvm/scripts/gvm
+export GOPATH="$HOME/go"
+PATH="$GOPATH/bin:$PATH"
 
+
+## Bash Alias
 alias pym='python manage.py'
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 alias .....='cd ../../../..'
 
+## Kubernetes Alias
+alias k='kubectl'
+alias kcontext='kubectl config use-context'
+
+## Utility Alias
+myip='curl ipinfo.io/ip'
 
 ## Methods
 
 help() {
-  echo "\nAvailable Aliases:"
+  echo "\n\nAvailable Aliases:\n"
   alias -Lr
-  echo ""
+  echo "\n"
 }
