@@ -16,6 +16,8 @@ if [ ! -d "$laptop_repo_directory" ]; then
         exit 1
     fi
 else
+    cd $laptop_repo_directory
+
     # Pull the lastest changes from the Laptop Trunk branch.
     git fetch
     git reset --hard
