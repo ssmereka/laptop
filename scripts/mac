@@ -7,12 +7,16 @@ laptop_repo_directory="$code_directory/laptop"
 # Directory where local Laptop configurations are stored
 laptop_local_directory="$laptop_repo_directory/local"
 
-configure_git() {
-    log "🪛 Configuring Git"
+configure_git() {   
+    log "🔐  Unlock 1Password"
+
     # Get the user's GitHub information from 1Password
+    $(op signin)
     git_email=$(op item get GitHub --fields email)
     git_name=$(op item get GitHub --fields name)
     github_username=$(op item get GitHub --fields username)
+
+    log "🔧 Configuring Git"
 
     # Create the .gitconfig file from the template
     dot_gitconfig="$laptop_local_directory/.gitconfig"
@@ -28,7 +32,7 @@ configure_git() {
 }
 
 configure_ssh() {
-    log "🪛 Configuring SSH"
+    log "🔧 Configuring SSH"
     # Create the default SSH directory (if it doesn't already exist)
     # and configure SSH to lookup SSH keys in 1Password
     mkdir -p $HOME/.ssh/
@@ -36,7 +40,7 @@ configure_ssh() {
 }
 
 configure_zsh() {
-    log "🪛 Configuring ZSH"
+    log "🔧 Configuring ZSH"
     # Symbolicially link the ZSH config.
     ln -sf "$laptop_repo_directory/dotfiles/.zshrc" "$HOME/.zshrc"
 }
@@ -45,7 +49,7 @@ create_from_template() {
     source=$1
     destination=$2
 
-    destination_directory="$(dirname "${VAR}")"
+    destination_directory="$(dirname "${destination}")"
     mkdir -p "$destination_directory"
 
     # Check if a file at the destination exists.
@@ -72,11 +76,11 @@ install_or_update_homebrew() {
 }
 
 log() {
-    echo -e $1
+    echo -e "\n➡️ "$1"\n"
 }
 
 main() {
-    log "\n🚀 Setting up your laptop.\n"
+    echo -e "\n🚀 Setting up your laptop.\n"
     install_or_update_homebrew
     install_apps
 
@@ -84,7 +88,7 @@ main() {
     configure_ssh
     configure_zsh
 
-    log "\n🎉 Done!\n"
+    echo -e "\n🎉 Done!\n"
 }
 
 # Run this script
