@@ -35,8 +35,18 @@ configure_ssh() {
     log "🔧 Configuring SSH"
     # Create the default SSH directory (if it doesn't already exist)
     # and configure SSH to lookup SSH keys in 1Password
-    mkdir -p $HOME/.ssh/
+    mkdir -p "$HOME/.ssh/"
+    chmod 700 "$HOME/.ssh"
+
     ln -sf "$laptop_repo_directory/dotfiles/.ssh_config" "$HOME/.ssh/config"
+    chmod 600 "$laptop_repo_directory/dotfiles/.ssh_config"
+
+    # Create the 1Password agent configuration file from the template
+    onepassword_agent="$laptop_local_directory/agent.toml"
+    create_from_template "$laptop_repo_directory/templates/agent.toml" "$onepassword_agent"
+    
+    mkdir -p "$HOME/.config/1Password/ssh/"
+    ln -sf "$laptop_repo_directory/local/agent.toml" "$HOME/.config/1Password/ssh/agent.toml"
 }
 
 configure_zsh() {
