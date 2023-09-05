@@ -33,3 +33,11 @@ To update or fix any issues with Laptop re-run the install:
 ```bash
 curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install | bash
 ```
+
+## Additional Settings
+
+**Map external keyboard keys:**
+1. Navigate to `System Settings` > `Keyboard`.
+2. Change `Select keyboard` to the external keyboard.
+3. Chanage `Option key` to `Command`.
+4. Change `Command key` to `Option`.
