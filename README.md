@@ -34,6 +34,31 @@ To update or fix any issues with Laptop re-run the install:
 curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install | bash
 ```
 
+## Using Laptop
+
+Run the command `help` in your terminal for a list of available commands.
+
+
+Laptop has configured your computer in a very opinionated way. Here's are those opinions and the settings applied as a result.
+
+#### Terminal history should persist indefinitely as evidence of the actions you have taken.
+
+Your history is a timeline of actions you have taken that can be leveraged for a number of use-caes. Like recalling what you did to setup an application. Or reviewing actions taken during an outage.
+
+The zsh history is configured to store all (well... 999,999,999) events in the terminal and the `~/.zsh_history` file. With each event containing a timestamp (in seconds since the epoch) and duration (in seconds) of the command. The history is shared across all terminal sessions, as if they were a single session.
+
+If you need to enter secret information into your terminal prefix the command with a `space`, like `" SECRET=my-password"`. Any command the begins with a `space` will not be stored in the history.
+
+Use commands like `history | grep <search term here>` or interactive history search with `CTRL+R` to query the history events. These commands are listed in the Laptop screen too, just run `help`.
+
+#### Use package managers.
+
+Software is complex, configurable, and changes often. To mitigate issues caused by installing or managing versions we use version managers when possible.
+
+[Homebrew](https://brew.sh), mac's unofficial package manager, is installed and used to manage the installation of 3rd party software, like `1password`.
+
+Version managers are installed for Node, Python, Go, and Ruby. Enabling you to quickly install and use different versions for application development.
+
 ## Additional Settings
 
 **Map external keyboard keys:**
