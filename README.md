@@ -38,6 +38,8 @@ curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install | bash
 
 Run the command `help` in your terminal for a list of available commands.
 
+![laptop-help](https://github.com/ssmereka/laptop/assets/489291/6be6ecfb-ed78-498c-abca-3abc9e4662fb)
+
 
 Laptop has configured your computer in a very opinionated way. Here's are those opinions and the settings applied as a result.
 
