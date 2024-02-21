@@ -126,7 +126,7 @@ eval "$(pyenv init -)"
 ##### Load Custom Configuration
 ########################################
 
-# Sources any files in the ".laptop" directory that contain "zsh_" in the filename.
+# Sources any files in the ".laptop" directory that contain "zshrc_" in the filename.
 if [[ -d "$HOME/.laptop" ]]; then
   # for file in $HOME/.laptop/**/*(.); do 
   for file in $HOME/.laptop/*(DN); do 

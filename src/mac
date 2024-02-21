@@ -249,7 +249,6 @@ install_or_update_homebrew() {
     fi
 }
 
-
 log() {
     print -- "\n→ "$1"\n"
 }
