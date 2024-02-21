@@ -49,7 +49,7 @@ lt-update
 OR
 
 ```bash
-curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install-laptop | bash
+curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh
 ```
 
 ![laptop-help](https://github.com/ssmereka/laptop/assets/489291/6be6ecfb-ed78-498c-abca-3abc9e4662fb)

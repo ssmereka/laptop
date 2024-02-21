@@ -17,7 +17,7 @@ alias k='kubectl'
 alias kcontext='kubectl config use-context'
 
 # Update the "Laptop" software
-alias lt-update='curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install | bash'
+alias lt-update='curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh'
 
 # Display external IP address
 alias lt-myip='curl ipinfo.io/ip'
