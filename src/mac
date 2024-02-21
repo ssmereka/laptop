@@ -191,7 +191,7 @@ copy_src_file_and_symlink() {
     copy_file "$laptop_src_directory/$filename" "$laptop_local_directory/$filename" $overwrite
     
     # Symbolicially link the local file to the default location.
-    ln -sf "$local_default_gems_path" "$default_location"
+    ln -sf "$laptop_local_directory/$filename" "$default_location"
 }
 
 # Get secrets from 1Password and store them in global variables
