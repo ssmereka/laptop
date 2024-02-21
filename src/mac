@@ -1,0 +1,256 @@
+#!/bin/zsh
+
+# Directory where all coding projects will be cloned and stored.
+code_directory="$HOME/code"
+# Directory where a local copy of the Laptop repository will be cloned and stored.
+laptop_repo_directory="$code_directory/laptop"
+# Directory where the Laptop source code is stored
+laptop_src_directory="$laptop_repo_directory/src"
+# Directory where local Laptop configurations are stored
+laptop_local_directory="$HOME/.laptop"
+# Directory where the user's custom install script is stored
+laptop_custom_install_script="$laptop_local_directory/.laptop.local"
+
+# Get the processor architecture from the operating system. Where "x86_64" 
+# is an Intel processor and "arm64" is an Apple Silicon processor.
+processor_architecture="$(uname -m)"
+
+# Set variables based on the processor architecture.
+# Exit the script if the processor architecture is not supported.
+if [ "$processor_architecture" = "arm64" ]; then
+    HOMEBREW_PREFIX="/opt/homebrew"
+elif [ "$processor_architecture" = "x86_64" ]; then
+    HOMEBREW_PREFIX="/usr/local"
+else
+    echo "Unsupported processor architecture: $processor_architecture"
+    exit 1
+fi
+
+
+# Create a Git configuration file with the user's GitHub information from 1Password.
+configure_git() {   
+    log "🔐  Unlock 1Password"
+
+    # Get the user's GitHub information from 1Password
+    $(op signin)
+    git_email=$(op item get GitHub --fields email)
+    git_name=$(op item get GitHub --fields name)
+    github_username=$(op item get GitHub --fields username)
+
+    log "🔧 Configuring Git"
+
+    # Create a local Git configuration file from the Laptop template, if one doesn't exist.
+    local_gitconfig="$laptop_local_directory/.gitconfig"
+    copy_file "$laptop_src_directory/.gitconfig" "$local_gitconfig" false
+
+    # Replace the templates variables using the information from 1Password
+    sed -i '' "s|GIT_EMAIL|${git_email}|" "$local_gitconfig"
+    sed -i '' "s|GIT_NAME|${git_name}|" "$local_gitconfig"
+    sed -i '' "s|GITHUB_USERNAME|${github_username}|" "$local_gitconfig"
+
+    # Symbolically link the .gitconfig to the proper location.
+    ln -sf "$local_gitconfig" "$HOME/.gitconfig"  
+}
+
+# Configure SSHto use the SSH keys in 1Password.
+configure_ssh() {
+    log "🔧 Configuring SSH"
+
+    # Create the default SSH directory (if it doesn't already exist)
+    # and configure SSH to lookup SSH keys in 1Password
+    mkdir -p "$HOME/.ssh/"
+    chmod 700 "$HOME/.ssh"
+
+    # Create a local .ssh_config configuration file from the Laptop template, if one doesn't exist.
+    local_ssh_config_path="$laptop_local_directory/.ssh_config"
+    copy_file "$laptop_src_directory/.ssh_config" "$local_ssh_config_path" false
+    
+    # Grant the owner read/write permissions to the local SSH configuration file.
+    # This is the required permission level for SSH to use the file.
+    chmod 600 "$local_ssh_config_path"
+
+    # Symbolicially link the local ssh config to the default location.
+    ln -sf "$local_ssh_config_path" "$HOME/.ssh/config"
+    
+    # Create a local 1Password agent configuration file from the Laptop template, if one doesn't exist.
+    local_onepassword_agent_path="$laptop_local_directory/agent.toml"
+    copy_file "$laptop_src_directory/agent.toml" "$local_onepassword_agent_path" false
+    
+    # Symbolicially link the local 1Password agent configuration to the default location.
+    mkdir -p "$HOME/.config/1Password/ssh/"
+    ln -sf "$local_onepassword_agent_path" "$HOME/.config/1Password/ssh/agent.toml"
+}
+
+# Configure ZSH to use the Laptop configuration files.
+configure_zsh() {
+    log "🔧 Configuring ZSH"
+
+    # Create a local ZSH configuration file, overwriting it if it already exists.
+    copy_src_file_and_symlink ".zshrc" "$ZDOTDIR/.zshrc" true
+
+    copy_file "$laptop_src_directory/.zshrc_aliases" "$laptop_local_directory/.zshrc_aliases" true
+    copy_file "$laptop_src_directory/.zshrc_methods" "$laptop_local_directory/.zshrc_methods" true
+}
+
+# Configure ASDF to manage Node.js and Ruby runtime versions.
+configure_asdf() {
+    log "🔧 Configuring ASDF"
+
+    # Create a local ASDF configuration file, if one doesn't exist
+    # https://asdf-vm.com/manage/configuration.html#asdf-config-file
+    copy_src_file_and_symlink ".asdfrc" "$HOME/.asdfrc" false
+
+    # Create a local .default-gems file, if one doesn't exist.
+    # After Ruby is installed, the gems specified in this file will be installed.
+    # https://github.com/asdf-vm/asdf-ruby?tab=readme-ov-file#default-gems
+    copy_src_file_and_symlink ".default-gems" "$HOME/.default-gems" false
+
+    # Source the ASDF version manager
+    . $(brew --prefix asdf)/libexec/asdf.sh
+
+    # Install the lastest version of Node.js using ASDF
+    # https://github.com/asdf-vm/asdf-nodejs
+    log "🔧 Installing Node.js with ASDF"
+    asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
+    asdf install nodejs latest
+    asdf global nodejs latest
+    print -- "Installed Node.js $(node --version)"
+
+    # Install the latest version of Ruby using ASDF
+    # https://github.com/asdf-vm/asdf-ruby
+    log "🔧 Installing Ruby with ASDF"
+    asdf plugin add ruby https://github.com/asdf-vm/asdf-ruby.git
+    asdf install ruby latest
+    asdf global ruby latest
+    print -- "Installed Ruby $(ruby --version)"
+
+    # Install the latest version of Go using ASDF
+    # https://github.com/asdf-community/asdf-golang?tab=readme-ov-file#asdf-golang
+    # log "🔧 Installing Go"
+    # asdf plugin add golang https://github.com/asdf-community/asdf-golang.git
+    # asdf install golang latest
+    # asdf global golang latest
+    # print -- "Installed Go $(go version)"
+    
+}
+
+# Copy a file from the source path to the destination path if the file 
+# does not already exist. When "overwrite" is true, the file will be replaced.
+# Parameters:
+#   source: The path to the source file to copy.
+#   destination: The destination path where the file will be copied to.
+#   overwrite: A boolean value to determine if the destination file should be replaced.
+copy_file() {
+    source=$1
+    destination=$2
+    overwrite=$3
+
+    destination_directory="$(dirname "${destination}")"
+    mkdir -p "$destination_directory"
+
+    # Check if a file at the destination exists.
+    if [[ $overwrite == true || ! -f "$destination" ]]; then
+        print -- "Created new file $destination"
+        # Destination doesn't exist, create a new file from the source
+        cp "$source" "$destination"
+    fi
+}
+
+# Copy a file from the Laptop source directory to the local Laptop directory and create a symbolic link to the default location.
+copy_src_file_and_symlink() {
+    filename=$1
+    default_location=$2
+    overwrite=$3
+
+    # Create a copy of the Laptop source file in the local Laptop directory.
+    # When "overwrite" is true, the file will not be replace even if it already exists.
+    copy_file "$laptop_src_directory/$filename" "$laptop_local_directory/$filename" $overwrite
+    
+    # Symbolicially link the local file to the default location.
+    ln -sf "$local_default_gems_path" "$default_location"
+}
+
+# Install applications using Homebrew
+install_apps() {
+    # Install applications using Homebrew
+    brew bundle --file=- <<EOF
+    cask '1password-cli'
+    brew 'gh'
+    brew 'asdf' # Requires coreutils, gawk, curl
+    brew 'coreutils'
+    brew 'curl'
+    brew 'gawk'
+EOF
+}
+
+# Install and configure the user's PATH to include Homebrew. Or update 
+# Homebrew if it's already installed.
+install_or_update_homebrew() {
+    if [[ $(command -v brew) == "" ]]; then
+        log "🍺 Installing Hombrew"
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+        # Add Homebrew to the user's PATH, if it's not already there.
+        if [[ ":$PATH:" == *":$HOMEBREW_PREFIX/bin:"* ]]; then
+            export PATH=$HOMEBREW_PREFIX/bin:$PATH
+        fi
+    else
+        log "🍺 Updating Homebrew"
+        brew update --force # https://github.com/Homebrew/brew/issues/1151
+    fi
+}
+
+install_custom() {
+    if [[ -f "$laptop_custom_install_script" ]]; then
+        log "🪄  Running your customizations from $laptop_custom_install_script"
+        chmod +x "$laptop_custom_install_script"
+        "$laptop_custom_install_script"
+    else
+        log "🪄  No customizations found at $laptop_custom_install_script"
+    fi
+}
+
+clone_laptop() {
+    # Clone the Laptop repository if it doesn't exist locally
+    if [[ ! -d "$laptop_repo_directory" ]]; then
+        # Laptop doesn't exist locally, clone it.
+        mkdir -p $laptop_repo_directory
+        git clone git@github.com:ssmereka/laptop.git "$laptop_repo_directory"
+
+        if [[ ! -d "$laptop_repo_directory" || ! -f "$laptop_repo_directory/mac.sh" ]]; then
+            echo -e "\n🔴 Error:  Failed to clone Laptop to \"$laptop_repo_directory\".\n"
+            exit 1
+        fi
+    else
+        print -- "Laptop already exists locally"
+        # cd $laptop_repo_directory
+
+        # # Pull the lastest changes from the Laptop Trunk branch.
+        # git fetch
+        # git reset --hard
+        # git checkout main
+        # git pull origin main
+    fi
+}
+
+log() {
+    print -- "\n→ "$1"\n"
+}
+
+main() {
+    print -- "\n🚀 Setting up your laptop ...time for a 🚬 smoke break?\n"
+    install_or_update_homebrew
+    install_apps
+
+    configure_git
+    configure_ssh
+    configure_zsh
+    configure_asdf
+
+    install_custom
+
+    print -- "\n🎉 Done!\n"
+}
+
+# Run this script
+main

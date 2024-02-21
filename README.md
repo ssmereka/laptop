@@ -1,14 +1,19 @@
 # Laptop
-Laptop is a script to set up your computer for development. 
+Laptop is a script to set up your computer for software development. 
 
-It's idempotent and installs, upgrades, or skips packages based on what is already installed on the machine.
-Laptop works on macOS Ventura (13.0) on Intel processors, other versions and hardware are not tested.
+It's idempotent and installs, upgrades, or skips packages based on what is already installed on the machine. In otherwords, there's no downside to running it again and again.
 
-Inspired by [Thoughtbot](https://github.com/thoughtbot/laptop).
+It supports macOS Ventura (13) on Apple Silicon and Intel processors. 
+
+>Inspired by [Thoughtbot's Laptop](https://github.com/thoughtbot/laptop), and I hope this inspires you too!
 
 ## Getting Started
 
-1. Download, install, and login to [1Password](https://downloads.1password.com/mac/1Password.zip).
+### Setup your Secrets
+
+A few secrets are required to get setup. Laptop is configured to retreive these secrets from [1Password](https://1password.com).
+
+1. Download, install, and login to the [1Password MacOS application](https://downloads.1password.com/mac/1Password.zip).
 
 2. Unlock 1Password and add a `Login` item called `GitHub` with the following `fields`:
 
@@ -18,30 +23,55 @@ Inspired by [Thoughtbot](https://github.com/thoughtbot/laptop).
     | text | `email` | john@smith.com | Personal email address to be used in Git configuration |
     | text | `username` | jsmith | GitHub username |
 
-3. [Add a new SSH Key to 1Password](https://developer.1password.com/docs/ssh/get-started#step-1-generate-an-ssh-key) called `GitHub SSH Key`. Then [add this SSH key to your GitHub account](https://developer.1password.com/docs/ssh/get-started#step-2-upload-your-public-key-on-github).
+3. Follow the 1Password guides to [add a new SSH Key to 1Password](https://developer.1password.com/docs/ssh/get-started#step-1-generate-an-ssh-key) called `GitHub SSH Key`. Then [add this SSH key to your GitHub account](https://developer.1password.com/docs/ssh/get-started#step-2-upload-your-public-key-on-github).
 
-4. Run the Laptop `install` script.
+### Install Laptop
+
+1. Review the [install-laptop](https://github.com/ssmereka/laptop/blob/main/install-laptop) and [install-mac](https://github.com/ssmereka/laptop/blob/main/src/install-mac) scripts. Avoid running a script you haven't read!
+
+2. Run the Laptop `install-laptop` script.
 
     ```bash
-    curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install | bash
+    curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install-laptop | bash
     ```
 
-## Update Laptop
+This will clone git project to `~/code/laptop` and run `~/code/laptop/install-mac` to setup your Laptop!
 
-To update or fix any issues with Laptop re-run the install:
+### Update Laptop
+
+To update or fix any issues with Laptop just re-run the `install-laptop` script again.
+
+You can use the alias
 
 ```bash
-curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install | bash
+lt-update
 ```
 
-## Using Laptop
+OR
 
-Run the command `help` in your terminal for a list of available commands.
+```bash
+curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install-laptop | bash
+```
 
 
-Laptop has configured your computer in a very opinionated way. Here's are those opinions and the settings applied as a result.
+### Using Laptop
 
-#### Terminal history should persist indefinitely as evidence of the actions you have taken.
+Run the command `help` in your terminal for a list of available commands. (Relaunch your terminal if the command doesn't work)
+
+![laptop-help](https://github.com/ssmereka/laptop/assets/489291/6be6ecfb-ed78-498c-abca-3abc9e4662fb)
+
+## What does Laptop setup?
+
+Laptop installs and configures the following:
+
+* [Homebrew](http://brew.sh/) for managing operating system libraries.
+* [Git](https://git-scm.com/) configures the local Git client for use with 1Password and GitHub.
+* [GitHub CLI](https://cli.github.com/) for interacting with the GitHub API
+* [Zsh](http://www.zsh.org/) configures zsh with some opinions
+
+Laptop will configure your computer in a very opinionated way. Let's describe those opinions and how the script is configured to meet them.
+
+### Terminal history should persist indefinitely as evidence of the actions you have taken.
 
 Your history is a timeline of actions you have taken that can be leveraged for a number of use-caes. Like recalling what you did to setup an application. Or reviewing actions taken during an outage.
 
@@ -51,18 +81,12 @@ If you need to enter secret information into your terminal prefix the command wi
 
 Use commands like `history | grep <search term here>` or interactive history search with `CTRL+R` to query the history events. These commands are listed in the Laptop screen too, just run `help`.
 
-#### Use package managers.
+### Use package managers.
 
-Software is complex, configurable, and changes often. To mitigate issues caused by installing or managing versions we use version managers when possible.
+When developing you want your development environment to be as close to production as is reasonable. Switching between mutliple versions of software, like Python or Terraform, is complicated. To make switching easier, use a version manager whenever possible.
 
 [Homebrew](https://brew.sh), mac's unofficial package manager, is installed and used to manage the installation of 3rd party software, like `1password`.
 
 Version managers are installed for Node, Python, Go, and Ruby. Enabling you to quickly install and use different versions for application development.
 
-## Additional Settings
-
-**Map external keyboard keys:**
-1. Navigate to `System Settings` > `Keyboard`.
-2. Change `Select keyboard` to the external keyboard.
-3. Chanage `Option key` to `Command`.
-4. Change `Command key` to `Option`.
+### Projects are stored in directory

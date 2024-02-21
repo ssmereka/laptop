@@ -1,0 +1,58 @@
+#!/bin/zsh
+
+# Methods
+# Helpful methods for common tasks.
+
+help() {
+  lt-help
+}
+
+# Set the Kubernetes context to a specific namespace.
+kns() {
+  kubectl config set-context --current --namespace="$@"
+}
+
+# Display all available aliases.
+lt-alias() {
+  print -- '\nAliases:\n'
+  alias -Lr
+  print -- '\n'
+}
+
+# Display a help menu with a list of available Laptop comands.
+lt-help() {
+  print -- '
+  💻 Laptop Commands:
+
+  \t🍰  lt-alias  \t list alias commands.
+  \t🔄  lt-k8s    \t list kubernetes commands.
+  \t🏓  lt-myip   \t displays external IP address.
+  \t📥  lt-update \t update this "Laptop" software.
+  \t🏥  lt-help   \t displays this help menu, can also use "help".
+
+  🧙 Zsh:
+  \t⏳  CTRL+R  \t interactive command history search. Press CTRL+R again to go to next.
+  \t⏳  history \t print command history, use "history | grep <search>" to search.
+  
+  🧰 Tools:
+  \t👻  nvm   \t https://github.com/nvm-sh/nvm
+  \t💎  rvm   \t https://rvm.io
+  \t🐍  pyenv \t 
+  \t🦔  gvm   \t https://github.com/moovweb/gvm
+
+  🔄 Kubernetes:
+  \t k                  \t kubectl alias
+  \t kcontext <context> \t change to context
+  \t kns <namespace>    \t use namespace
+  '
+}
+
+# Display help menu with a list of available Kubernetes commands.
+lt-k8s() {
+  print -- '
+  🔄 Kubernetes Commands
+  \t k                  \t kubectl alias
+  \t kcontext <context> \t change to context
+  \t kns <namespace>    \t use namespace
+  '
+}

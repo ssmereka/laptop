@@ -1,0 +1,3 @@
+# asdf-ruby can automatically install a set of default gems right after 
+# installing a Ruby version. List those gems, one per line.
+# https://github.com/asdf-vm/asdf-ruby?tab=readme-ov-file#default-gems

@@ -1,15 +1,22 @@
-# Configuration for zsh (not OH-My-ZSH)
+# User profile for interactive zsh(1) shells.
+
+# The system-wide profile can be found at /etc/zshrc.
 
 # Enable Homebrew autocompletion, 
 # https://formulae.brew.sh/formula/zsh-completions
 if type brew &>/dev/null; then
   # This must be done before loading ZSH autocompletion using the "compinit" command.
   FPATH="$(brew --prefix)/share/zsh/site-functions:${FPATH}"
-
-  # Enable ZSH autocompletion using "compdef".
-  autoload -Uz compinit
-  compinit
 fi
+
+# Enable ZSH autocompletion using "compdef".
+autoload -Uz compinit
+zstyle ':completion:*' menu select
+# zmodload zsh/complist
+compinit
+# Enable autocomplete for hidden (ie. dot) files.
+_comp_options+=(globdots)
+
 
 # Enable autocomplete for 1Password CLI, 
 # https://developer.1password.com/docs/cli/reference/commands/completion/
@@ -32,14 +39,12 @@ command -v flux >/dev/null && . <(flux completion zsh)
 # Maximum number of events stored in the internal history list.
 # Setting to a ridiculous number expressible in 32-bits to store all events.
 # https://www.zsh.org/mla/users/2013/msg00691.html
-HISTSIZE=999999999
+HISTSIZE=999999999 
 
 # Maximum number of history events to save in the history file.
 # Must match "HISTSIZE" to store all events in the history file.
 SAVEHIST=999999999
 
-# Location of file to save the history in when an interactive shell exits.
-HISTFILE=~/.zsh_history
 
 # History Options
 # https://zsh.sourceforge.io/Doc/Release/Options.html#History
@@ -74,24 +79,29 @@ setopt SHARE_HISTORY
 ##### Version Managers
 ########################################
 
+# ASDF Version Manager
+# https://asdf-vm.com
+
+. $(brew --prefix asdf)/libexec/asdf.sh
+
 # Node Version Manager (NVM)
 # https://github.com/nvm-sh/nvm
 
-# Add NVM to the user's PATH.
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-# Add NVM autocompletion
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+# # Add NVM to the user's PATH.
+# export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+# # Add NVM autocompletion
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
 
 # Ruby Version Manager (RVM)
 # https://rvm.io
 
 # Add Ruby Version Manager to the user's PATH.
-PATH_TO_RVM="$HOME/.rvm/bin"
-if test -f "$PATH_TO_RVM"; then
-    export PATH="$PATH:$PATH_TO_RVM"
-    echo "Added RVM bin to the user's path \"$PATH\"."
-fi
+# PATH_TO_RVM="$HOME/.rvm/bin"
+# if test -f "$PATH_TO_RVM"; then
+#     export PATH="$PATH:$PATH_TO_RVM"
+#     echo "Added RVM bin to the user's path \"$PATH\"."
+# fi
 
 
 # Go Version Manager (GVM)
@@ -111,87 +121,17 @@ export PYENV_ROOT="$HOME/.pyenv"
 command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 
-########################################
-##### Alias
-########################################
-
-# Shorter Django management commands
-alias pym='python manage.py'
-
-# Navigate up the directory tree quickly
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-alias .....='cd ../../../..'
-
-# Kubectl Aliases
-alias k='kubectl'
-alias kcontext='kubectl config use-context'
-
-# Update the "Laptop" software
-alias lt-update='curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install | bash'
-
-# Display external IP address
-alias lt-myip='curl ipinfo.io/ip'
-
 
 ########################################
-##### Methods
+##### Load Custom Configuration
 ########################################
 
-# Set the Kubernetes context to a specific namespace.
-kns() {
-  kubectl config set-context --current --namespace="$@"
-}
-
-
-# Laptop Methods
-
-# Display all available aliases.
-lt-alias() {
-  print -- '\nAliases:\n'
-  alias -Lr
-  print -- '\n'
-}
-
-# Display a help menu with a list of available Laptop comands.
-lt-help() {
-  print -- '
-  💻 Laptop Commands:
-
-  \t🍰  lt-alias  \t list alias commands.
-  \t🔄  lt-k8s    \t list kubernetes commands.
-  \t🏓  lt-myip   \t displays external IP address.
-  \t📥  lt-update \t update this "Laptop" software.
-  \t🏥  lt-help   \t displays this help menu, can also use "help".
-
-  🧙 Zsh:
-  \t⏳  CTRL+R  \t interactive command history search. Press CTRL+R again to go to next.
-  \t⏳  history \t print command history, use "history | grep <search>" to search.
-  
-  🧰 Tools:
-  \t👻  nvm   \t https://github.com/nvm-sh/nvm
-  \t💎  rvm   \t https://rvm.io
-  \t🐍  pyenv \t 
-  \t🦔  gvm   \t https://github.com/moovweb/gvm
-
-  🔄 Kubernetes:
-  \t k                  \t kubectl alias
-  \t kcontext <context> \t change to context
-  \t kns <namespace>    \t use namespace
-  '
-}
-
-help() {
-  lt-help
-}
-
-# Display help menu with a list of available Kubernetes commands.
-lt-k8s() {
-  print -- '
-  🔄 Kubernetes Commands
-  \t k                  \t kubectl alias
-  \t kcontext <context> \t change to context
-  \t kns <namespace>    \t use namespace
-  '
-}
+# Sources any files in the ".laptop" directory that contain "zsh_" in the filename.
+if [[ -d "$HOME/.laptop" ]]; then
+  # for file in $HOME/.laptop/**/*(.); do 
+  for file in $HOME/.laptop/*(DN); do 
+    if [[ "$file" =~ "zshrc_" ]]; then
+      source $file; 
+    fi
+  done
+fi

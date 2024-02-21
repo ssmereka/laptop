@@ -1,0 +1,23 @@
+#!/bin/zsh
+
+# Aliases
+# A list of useful shortcuts for common commands
+
+# Shorter Django management commands
+alias pym='python manage.py'
+
+# Navigate up the directory tree quickly
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+
+# Kubectl Aliases
+alias k='kubectl'
+alias kcontext='kubectl config use-context'
+
+# Update the "Laptop" software
+alias lt-update='curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install | bash'
+
+# Display external IP address
+alias lt-myip='curl ipinfo.io/ip'
