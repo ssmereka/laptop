@@ -210,27 +210,59 @@ install_custom() {
     fi
 }
 
-clone_laptop() {
+clone_laptop_repository() {
     # Clone the Laptop repository if it doesn't exist locally
     if [[ ! -d "$laptop_repo_directory" ]]; then
-        # Laptop doesn't exist locally, clone it.
         mkdir -p $laptop_repo_directory
         git clone git@github.com:ssmereka/laptop.git "$laptop_repo_directory"
 
-        if [[ ! -d "$laptop_repo_directory" || ! -f "$laptop_repo_directory/mac.sh" ]]; then
+        if [[ ! -f "$laptop_repo_directory/mac" ]]; then
             echo -e "\n🔴 Error:  Failed to clone Laptop to \"$laptop_repo_directory\".\n"
             exit 1
         fi
-    else
-        print -- "Laptop already exists locally"
-        # cd $laptop_repo_directory
-
-        # # Pull the lastest changes from the Laptop Trunk branch.
-        # git fetch
-        # git reset --hard
-        # git checkout main
-        # git pull origin main
     fi
+}
+
+unsaved_changes_prompt='
+🤔 hmm... there are unsaved changes in the Laptop git repository.
+
+We can stash those local changes and pull the latest changes from the 
+remote repository. You would be able to reapply those local changes 
+by running the command:
+
+    cd '$laptop_repo_directory' && git stash pop 
+
+Or we can just proceed with using the current local version of Laptop.
+'
+
+update_laptop_repository() {
+    pushd $laptop_repo_directory > /dev/null
+
+    # If there are changes in the local repository, ask the user if 
+    # they want to stash and pull the latest changes.
+    if [[ `git status --porcelain` ]]; then
+        # print -- '\n🤔 hmm... there are unsaved changes in the Laptop git repository at "'$laptop_repo_directory'".\n\nWe can stash those local changes and pull the latest changes from the remote repository. You would be able to reapply those local changes by running the command "cd '$laptop_repo_directory' && git stash pop". Or we can just proceed with using the current local version of Laptop.\n'
+        print -- "$unsaved_changes_prompt"
+        # print -- 'Shall we proceed with stashing those changes? [Y/n]? '
+        # read response
+        read "response?Shall we proceed with stashing those changes? [Y/n]? "
+
+        if [[ -z $response || $response =~ ^[Yy] ]]; then
+        # if [[ "$REPLY" =~ ^[Nn]$ ]]; then
+            log "💾  Stashing Local Changes"
+            git stash
+        else
+            print -- "\n OK, we will skip pulling the latest changes.\n"
+            return
+        fi
+    fi
+
+    log "💻  Updating Laptop Repository"
+    git fetch
+    git checkout main
+    git pull origin main
+
+    popd > /dev/null
 }
 
 log() {
@@ -238,7 +270,12 @@ log() {
 }
 
 main() {
-    print -- "\n🚀 Setting up your laptop ...time for a 🚬 smoke break?\n"
+    print -- "\n💻 Install Laptop\n\n Don't go anywhere yet, we may have some questions.\n"
+
+    clone_laptop_repository
+    update_laptop_repository
+
+    print -- "\n🚀 Ok, we got this! Setting up your laptop ...time for a 🚬 smoke break?\n"
     install_or_update_homebrew
     install_apps
 

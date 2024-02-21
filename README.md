@@ -11,7 +11,7 @@ It supports macOS Ventura (13) on Apple Silicon and Intel processors.
 
 ### Setup your Secrets
 
-A few secrets are required to get setup. Laptop is configured to retreive these secrets from [1Password](https://1password.com).
+A few secrets are required to get setup. Laptop is configured to retreive these secrets from [1Password](https://1password.com). So you're going to need 1Password for this to work out of the box.
 
 1. Download, install, and login to the [1Password MacOS application](https://downloads.1password.com/mac/1Password.zip).
 
@@ -27,21 +27,20 @@ A few secrets are required to get setup. Laptop is configured to retreive these 
 
 ### Install Laptop
 
-1. Review the [install-laptop](https://github.com/ssmereka/laptop/blob/main/install-laptop) and [install-mac](https://github.com/ssmereka/laptop/blob/main/src/install-mac) scripts. Avoid running a script you haven't read!
+1. Review the [mac] script. Avoid running a script you haven't read!
 
-2. Run the Laptop `install-laptop` script.
+2. Run the [mac] script.
 
     ```bash
-    curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install-laptop | bash
+    curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh
     ```
 
-This will clone git project to `~/code/laptop` and run `~/code/laptop/install-mac` to setup your Laptop!
+This will clone the git project to `~/code/laptop` and setup your computer!
 
 ### Update Laptop
 
-To update or fix any issues with Laptop just re-run the `install-laptop` script again.
+To update or fix any issues with Laptop just re-run the [mac] script again. You can use the alias:
 
-You can use the alias
 
 ```bash
 lt-update
@@ -56,22 +55,27 @@ curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/install-laptop |
 
 ### Using Laptop
 
-Run the command `help` in your terminal for a list of available commands. (Relaunch your terminal if the command doesn't work)
+Laptop installs software and configures your Laptop. It also provides some useful commands. Run the command `help` in your terminal for a list of available commands. (You may need to relaunch your terminal if the command doesn't work)
 
 ![laptop-help](https://github.com/ssmereka/laptop/assets/489291/6be6ecfb-ed78-498c-abca-3abc9e4662fb)
 
 ## What does Laptop setup?
 
-Laptop installs and configures the following:
+Laptop installs and configures the following software:
 
 * [Homebrew](http://brew.sh/) for managing operating system libraries.
-* [Git](https://git-scm.com/) configures the local Git client for use with 1Password and GitHub.
-* [GitHub CLI](https://cli.github.com/) for interacting with the GitHub API
-* [Zsh](http://www.zsh.org/) configures zsh with some opinions
+* [Git] configures the local mac Git client for use with 1Password and GitHub.
+* [GitHub CLI] for interacting with the GitHub API
+* [Zsh] configures zsh with some opinions
+* [asdf] for managing programming language versions
+* [Node.js] and npm (via the [asdf-nodejs] plugin)
+* [Ruby] and npm (via the [asdf-ruby] plugin)
 
 Laptop will configure your computer in a very opinionated way. Let's describe those opinions and how the script is configured to meet them.
 
-### Terminal history should persist indefinitely as evidence of the actions you have taken.
+### ZSH Configuration
+
+We believe terminal history should persist indefinitely as evidence of the actions you have taken.
 
 Your history is a timeline of actions you have taken that can be leveraged for a number of use-caes. Like recalling what you did to setup an application. Or reviewing actions taken during an outage.
 
@@ -81,12 +85,42 @@ If you need to enter secret information into your terminal prefix the command wi
 
 Use commands like `history | grep <search term here>` or interactive history search with `CTRL+R` to query the history events. These commands are listed in the Laptop screen too, just run `help`.
 
-### Use package managers.
+### ASDF Version Manager
 
-When developing you want your development environment to be as close to production as is reasonable. Switching between mutliple versions of software, like Python or Terraform, is complicated. To make switching easier, use a version manager whenever possible.
+When developing you want your development environment to be as close to production as is reasonable. Switching between mutliple versions of software is complicated. To make switching easier we setup version managers and package managers.
 
 [Homebrew](https://brew.sh), mac's unofficial package manager, is installed and used to manage the installation of 3rd party software, like `1password`.
 
-Version managers are installed for Node, Python, Go, and Ruby. Enabling you to quickly install and use different versions for application development.
+Version managers are installed for Node.js, Python, Go, and Ruby. Enabling you to quickly install and use different versions for application development. These version manager are all managed by [asdf].
 
-### Projects are stored in directory
+### Code Directory
+
+Coding projects from git repositories are stored in the local `~/code` directory.
+
+## Customize Laptop
+
+If provided, your local file `~/.laptop.local` is run at the end of the Laptop script. Put your customizations there.
+
+For example:
+
+```zsh
+#!/bin/zsh
+
+brew bundle --file=- <<EOF
+brew "ngrok"
+EOF
+```
+
+Write your customizations such that they can be run safely more than once.
+
+
+[mac]: https://github.com/ssmereka/laptop/blob/main/src/mac
+[Homebrew]: http://brew.sh/
+[Git]: https://git-scm.com/
+[GitHub CLI]: https://cli.github.com/
+[Zsh]: http://www.zsh.org/
+[asdf]: https://github.com/asdf-vm/asdf
+[Node.js]: https://nodejs.org/en
+[Ruby]: https://www.ruby-lang.org/en/
+[asdf-nodejs]: https://github.com/asdf-vm/asdf-nodejs
+[asdf-ruby]: https://github.com/asdf-vm/asdf-ruby
