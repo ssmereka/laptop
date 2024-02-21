@@ -26,5 +26,5 @@ else
 fi
 
 # Run the macOS install script
-chmod +x "$laptop_repo_directory/scripts/mac"
-"$laptop_repo_directory/scripts/mac"
+chmod +x "$laptop_repo_directory/src/install-mac"
+"$laptop_repo_directory/src/install-mac"
