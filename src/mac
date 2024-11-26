@@ -25,16 +25,15 @@ remote_laptop_base_url="https://raw.githubusercontent.com/ssmereka/laptop/refs/h
 remote_laptop_src_directory="$remote_laptop_base_url/src"
 
 # Prompt to inform the user that there are unsaved changes in the Laptop git repository.
-unsaved_changes_prompt='
-🤔 hmm... there are unsaved changes in the Laptop git repository.
+unsaved_changes_prompt='🚨 Attention: Cannot pull the latest changes from the remote Laptop
+              repository, because there are local changes.
 
-We can stash those local changes and pull the latest changes from the 
-remote repository. You would be able to reapply those local changes 
-by running the command:
+Y:  Proceed without the latest changes from the remote Laptop repository.
 
-    cd '$laptop_repo_directory' && git stash pop 
+    OR
 
-Or we can just proceed with using the current local version of Laptop.
+N:  Stash the local changes, then pull the latest from the remote Laptop repository.
+    Reapply the local changes with command: "cd '$laptop_repo_directory' && git stash pop"
 
 '
 
@@ -395,26 +394,25 @@ link_file() {
 update_laptop_repository() {
     pushd $laptop_repo_directory > /dev/null
 
+    log_header "🔁 Updating Laptop Repository"
+
     # If there are changes in the local repository, ask the user if 
     # they want to stash and pull the latest changes.
     if [[ `git status --porcelain` ]]; then
-        # print -- '\n🤔 hmm... there are unsaved changes in the Laptop git repository at "'$laptop_repo_directory'".\n\nWe can stash those local changes and pull the latest changes from the remote repository. You would be able to reapply those local changes by running the command "cd '$laptop_repo_directory' && git stash pop". Or we can just proceed with using the current local version of Laptop.\n'
         log "$unsaved_changes_prompt"
-        # print -- 'Shall we proceed with stashing those changes? [Y/n]? '
-        # read response
-        read "response?Shall we proceed with stashing those changes? [Y/n]? "
+        read "response?Continue without pulling the latest changes? [Y/n]? "
 
         if [[ -z $response || $response =~ ^[Yy] ]]; then
         # if [[ "$REPLY" =~ ^[Nn]$ ]]; then
-            log_header "💾  Stashing Local Changes"
-            git stash
-        else
-            log "\nOK, we will skip pulling the latest changes.\n"
+            log "\nSkipped pulling the latest changes from the remote Laptop repository."
             return
+        else
+            log "\nStashing local changes."
+            git stash
         fi
     fi
 
-    log_header "💻  Updating Laptop Repository"
+    log "Checking out the \"main\" branch and pulling changes."
     git fetch
     git checkout main
     git pull origin main
