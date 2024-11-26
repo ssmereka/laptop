@@ -407,12 +407,12 @@ update_laptop_repository() {
             log "\nSkipped pulling the latest changes from the remote Laptop repository."
             return
         else
-            log "\nStashing local changes."
+            log "\nStashing local changes.\n"
             git stash
         fi
     fi
 
-    log "Checking out the \"main\" branch and pulling changes."
+    log "\nChecking out the \"main\" branch and pulling changes.\n"
     git fetch
     git checkout main
     git pull origin main
