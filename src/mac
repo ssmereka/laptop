@@ -258,13 +258,6 @@ EOF
 
     log "🔧 Installing 1Password CLI"
     brew install --cask 1password-cli
-
-
-    
-
-    # Prompt
-    # https://developer.1password.com/docs/cli/get-started/
-    # open -a 1password
 }
 
 install_custom() {
