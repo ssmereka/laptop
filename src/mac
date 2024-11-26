@@ -1,40 +1,28 @@
 #!/bin/zsh
 
+
+# Global Static Variables
+
 # Directory where all coding projects will be cloned and stored.
 code_directory="$HOME/code"
+
 # Directory where a local copy of the Laptop repository will be cloned and stored.
 laptop_repo_directory="$code_directory/laptop"
+
 # Directory where the Laptop source code is stored.
 laptop_src_directory="$laptop_repo_directory/src"
+
 # Directory where local Laptop configurations are stored.
 laptop_local_directory="$HOME/.laptop"
+
 # Directory where the user's custom install script is stored.
 laptop_custom_install_script="$laptop_local_directory/.laptop.local"
+
 # Base URL for the remote Laptop repository.
 remote_laptop_base_url="https://raw.githubusercontent.com/ssmereka/laptop/refs/heads/main"
+
 # Remote URL of directory where the Laptop source code is stored.
 remote_laptop_src_directory="$remote_laptop_base_url/src"
-
-# Get the processor architecture from the operating system. Where "x86_64" 
-# is an Intel processor and "arm64" is an Apple Silicon processor.
-processor_architecture="$(uname -m)"
-
-# Set variables based on the processor architecture.
-# Exit the script if the processor architecture is not supported.
-if [ "$processor_architecture" = "arm64" ]; then
-    HOMEBREW_PREFIX="/opt/homebrew"
-elif [ "$processor_architecture" = "x86_64" ]; then
-    HOMEBREW_PREFIX="/usr/local"
-else
-    echo "Unsupported processor architecture: $processor_architecture"
-    exit 1
-fi
-
-# Secrets
-# The user's Git configuration details, including their email, name, and GitHub username.
-git_email=""
-git_name=""
-github_username=""
 
 # Prompt to inform the user that there are unsaved changes in the Laptop git repository.
 unsaved_changes_prompt='
@@ -50,6 +38,69 @@ Or we can just proceed with using the current local version of Laptop.
 
 '
 
+# Global Secrets
+
+# The user's Git configuration details, including their email, name, and GitHub username.
+git_email=""
+git_name=""
+github_username=""
+
+
+# Lifecycle Methods
+
+# Display an error message
+error() {
+    print -- "\n🔴 [Error]: "$*"\n"
+}
+
+# Handle error messages by printing them and exiting with a failure status.
+exit_with_error() {
+    error "$*"
+    exit 1
+}
+
+# Display a message to the user.
+log() {
+    print -- $*
+}
+
+# Display a distinct header message to the user.
+log_header() {
+    print -- "\n→ "$*"\n"
+}
+
+log_title() {
+    print -- "\n"$*"\n"
+}
+
+
+# Dynamic Global Variables
+
+# Get the processor architecture from the operating system. Where "x86_64" 
+# is an Intel processor and "arm64" is an Apple Silicon processor.
+processor_architecture="$(uname -m)"
+
+# Set variables based on the processor architecture.
+# Exit the script if the processor architecture is not supported.
+if [ "$processor_architecture" = "arm64" ]; then
+    HOMEBREW_PREFIX="/opt/homebrew"
+elif [ "$processor_architecture" = "x86_64" ]; then
+    HOMEBREW_PREFIX="/usr/local"
+else
+    exit_with_error "Unsupported processor architecture: $processor_architecture"
+fi
+
+
+# Methods
+
+# Removes all secrets from memory.
+clear_secrets() {
+    log_header "🔐 Clearing Secrets from Memory"
+    unset git_email
+    unset git_name
+    unset github_username
+}
+
 # Clone the Laptop repository locally, if it doesn't exist locally
 clone_laptop_repository() {
     if [[ ! -d "$laptop_repo_directory" ]]; then
@@ -57,7 +108,8 @@ clone_laptop_repository() {
         git clone git@github.com:ssmereka/laptop.git "$laptop_repo_directory"
 
         if [[ ! -f "$laptop_src_directory/mac" ]]; then
-            echo -e "\n🔴 Error:  Failed to clone Laptop to \"$laptop_repo_directory\".\n\n\tCommand:  git clone git@github.com:ssmereka/laptop.git \"$laptop_repo_directory\""
+            exit_with_error "Failed to clone Laptop to \"$laptop_repo_directory\".\n\n\tCommand:  " \
+                            "git clone git@github.com:ssmereka/laptop.git \"$laptop_repo_directory\""
         fi
     fi
 }
@@ -69,45 +121,45 @@ clone_laptop_repository() {
 configure_asdf() {
     laptop_src_location=${1:-"$laptop_src_directory"}
 
-    log "🔧 Configuring ASDF"
+    log_header "🔧 Configuring ASDF"
 
     # Create a local ASDF configuration file, if one doesn't exist
     # https://asdf-vm.com/manage/configuration.html#asdf-config-file
     copy_file "$laptop_src_location/.asdfrc" "$laptop_local_directory/.asdfrc"
-    ln -sf "$laptop_local_directory/.asdfrc" "$HOME/.asdfrc"
+    link_file "$laptop_local_directory/.asdfrc" "$HOME/.asdfrc"
 
     # Create a local .default-gems file, if one doesn't exist.
     # After Ruby is installed, the gems specified in this file will be installed.
     # https://github.com/asdf-vm/asdf-ruby?tab=readme-ov-file#default-gems
     copy_file "$laptop_src_location/.default-gems" "$laptop_local_directory/.default-gems"
-    ln -sf "$laptop_local_directory/.default-gems" "$HOME/.default-gems"
+    link_file "$laptop_local_directory/.default-gems" "$HOME/.default-gems"
 
     # Source the ASDF version manager
     . $(brew --prefix asdf)/libexec/asdf.sh
 
     # Install the lastest version of Node.js using ASDF
     # https://github.com/asdf-vm/asdf-nodejs
-    log "🔧 Installing Node.js with ASDF"
+    log_header "🔧 Installing Node.js with ASDF"
     asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
     asdf install nodejs latest
     asdf global nodejs latest
-    print -- "Installed Node.js $(node --version)"
+    log "\nInstalled Node.js $(node --version)"
 
     # Install the latest version of Ruby using ASDF
     # https://github.com/asdf-vm/asdf-ruby
-    log "🔧 Installing Ruby with ASDF"
+    log_header "🔧 Installing Ruby with ASDF"
     asdf plugin add ruby https://github.com/asdf-vm/asdf-ruby.git
     asdf install ruby latest
     asdf global ruby latest
-    print -- "Installed Ruby $(ruby --version)"
+    log "\nInstalled Ruby $(ruby --version)"
 
     # Install the latest version of Go using ASDF
     # https://github.com/asdf-community/asdf-golang?tab=readme-ov-file#asdf-golang
-    # log "🔧 Installing Go"
+    # log_header "🔧 Installing Go"
     # asdf plugin add golang https://github.com/asdf-community/asdf-golang.git
     # asdf install golang latest
     # asdf global golang latest
-    # print -- "Installed Go $(go version)"
+    # log "Installed Go $(go version)"
     
 }
 
@@ -118,19 +170,25 @@ configure_asdf() {
 configure_git() {
     laptop_src_location=${1:-"$laptop_src_directory"}
 
-    log "🔧 Configuring Git"
+    log_header "🔧 Configuring Git"
 
     # Create a local Git configuration file from the Laptop template, if one doesn't exist.
     local_gitconfig="$laptop_local_directory/.gitconfig"
     copy_file "$laptop_src_location/.gitconfig" "$local_gitconfig" false
+
+    if [[ -z "$git_email" || -z "$git_name" || -z "$github_username" ]]; then
+        get_secrets
+    fi
 
     # Replace the templates variables using the information from 1Password
     sed -i '' "s|GIT_EMAIL|${git_email}|" "$local_gitconfig"
     sed -i '' "s|GIT_NAME|${git_name}|" "$local_gitconfig"
     sed -i '' "s|GITHUB_USERNAME|${github_username}|" "$local_gitconfig"
 
+    clear_secrets
+
     # Symbolically link the .gitconfig to the proper location.
-    ln -sf "$local_gitconfig" "$HOME/.gitconfig"  
+    link_file "$local_gitconfig" "$HOME/.gitconfig"  
 }
 
 # Configure SSH to use the SSH keys in 1Password.
@@ -140,7 +198,7 @@ configure_git() {
 configure_ssh() {
     laptop_src_location=${1:-"$laptop_src_directory"}
 
-    log "🔧 Configuring SSH"
+    log_header "🔧 Configuring SSH"
 
     # Create the default SSH directory (if it doesn't already exist)
     # and configure SSH to lookup SSH keys in 1Password
@@ -156,7 +214,7 @@ configure_ssh() {
     chmod 600 "$local_ssh_config_path"
 
     # Symbolicially link the local ssh config to the default location.
-    ln -sf "$local_ssh_config_path" "$HOME/.ssh/config"
+    link_file "$local_ssh_config_path" "$HOME/.ssh/config"
     
     # Create a local 1Password agent configuration file from the Laptop template, if one doesn't exist.
     local_onepassword_agent_path="$laptop_local_directory/agent.toml"
@@ -164,7 +222,7 @@ configure_ssh() {
     
     # Symbolicially link the local 1Password agent configuration to the default location.
     mkdir -p "$HOME/.config/1Password/ssh/"
-    ln -sf "$local_onepassword_agent_path" "$HOME/.config/1Password/ssh/agent.toml"
+    link_file "$local_onepassword_agent_path" "$HOME/.config/1Password/ssh/agent.toml"
 }
 
 # Configure ZSH to use the Laptop configuration files.
@@ -174,11 +232,11 @@ configure_ssh() {
 configure_zsh() {
     laptop_src_location=${1:-"$laptop_src_directory"}
 
-    log "🔧 Configuring ZSH"
+    log_header "🔧 Configuring ZSH"
 
     # Create a local ZSH configuration file, overwriting it if it already exists.
     copy_file "$laptop_src_location/.zshrc" "$laptop_local_directory/.zshrc" true
-    ln -sf "$laptop_local_directory/.zshrc" "$ZDOTDIR/.zshrc"
+    link_file "$laptop_local_directory/.zshrc" "$ZDOTDIR/.zshrc"
 
     # Create custom local ZSH configuration files, overwriting it if it already exists.
     copy_file "$laptop_src_location/.zshrc_aliases" "$laptop_local_directory/.zshrc_aliases" true
@@ -201,48 +259,59 @@ copy_file() {
 
     if [[ $overwrite == true || ! -f "$destination" ]]; then
         if [[ "$source" == http* ]]; then
-            print -- "Downloading file from $source to $destination"
+            log "Downloading file from $source to $destination"
             curl -o "$destination" "$source"
         else
-            print -- "Copying file from $source to $destination"
+            log "Copying file from $source to $destination"
             cp "$source" "$destination"
         fi
+    else
+        log "No changes to file at $destination."
     fi
 }
 
-# Get secrets from 1Password and store them in global variables
+# Get secrets from 1Password and store them in global variables. This is a seperate method to
+# so secrets can be gathered at the start of the script to prevent user interactions in the 
+# middle of a lengthy script.
 get_secrets() {
-    log "🔐  Unlock 1Password"
+    log_header "🔐 Gathering Secrets"
 
     # Make sure 1Password has an account configured and app integration enabled.
     if [[ $(op account list --format=json 2>/dev/null) == "[]" ]]; then
-        echo -e "🔴 Error: There are no accounts configured for use with 1Password CLI. You must"\
+        exit_with_error "There are no accounts configured for use with 1Password CLI. You must"\
                 "enable app integration and then rerun this script.\n\n\t "\
-                "Guide: https://developer.1password.com/docs/cli/app-integration/\n"
-        exit 1
+                "Guide: https://developer.1password.com/docs/cli/app-integration/"
     fi
     
-    # Get the user's GitHub information from 1Password
+    log "Unlocking the 1Password CLI."
     $(op signin)
+    
+    log "Retrieving fields \"email\", \"name\", and \"username\" from 1Password item \"GitHub\"."
     git_email=$(op item get GitHub --fields email)
     git_name=$(op item get GitHub --fields name)
     github_username=$(op item get GitHub --fields username)
+
+    if [[ -z "$git_email" || -z "$git_name" || -z "$github_username" ]]; then
+        exit_with_error "Failed to lookup secret fields \"email\", \"name\", and \"username\"" \
+                        "from item \"GitHub\" in 1Password. Make sure they exist."
+    fi
 }
 
 # Install Xcode Command Line Tools, like git
 install_apple_developer_tools() {
     if ! xcode-select -p &> /dev/null; then
-        echo "🍏 Installing Xcode Command Line Tools"
+        log_header "🍏  Installing Apple's Developer Tools"
         xcode-select --install
 
-        echo "🍏 Accepting the Xcode License"
+        log_header "🍏  Accepting the Apple Xcode License"
         sudo xcodebuild -license accept
     fi
 }
 
 # Install applications using Homebrew
 install_apps() {
-    # Install applications using Homebrew
+    log_header "🔧 Installing Homebrew Applications"
+
     brew bundle --file=- <<EOF
     brew 'gh'
     brew 'asdf' # Requires coreutils, curl, and gawk
@@ -252,21 +321,32 @@ install_apps() {
     brew 'gnupg' # Install gpg
 EOF
 
-    # Install applications using Cask
-    log "🔧 Installing Visual Studio Code"
-    brew install --cask visual-studio-code
+    log_header "🔧 Installing Applications"
 
-    log "🔧 Installing 1Password CLI"
-    brew install --cask 1password-cli
+    if ! brew list --cask visual-studio-code &>/dev/null; then
+        log_header "🔧 Installing Visual Studio Code"
+        brew install --cask visual-studio-code
+    else
+        log "Visual Studio Code is already installed"
+    fi
+
+    if ! brew list --cask 1password-cli &>/dev/null; then
+        log_header "🔧 Installing 1Password CLI"
+        brew install --cask 1password-cli
+    else
+        log "1Password CLI is already installed."
+    fi
 }
 
+# Run the custom installation script if it exists on the local machine.
 install_custom() {
+    log_header "🪄 Running Customizations"
     if [[ -f "$laptop_custom_install_script" ]]; then
-        log "🪄  Running your customizations from $laptop_custom_install_script"
+        log "Running local customization script at $laptop_custom_install_script"
         chmod +x "$laptop_custom_install_script"
         "$laptop_custom_install_script"
     else
-        log "🪄  No customizations found at $laptop_custom_install_script"
+        log "No customizations found at $laptop_custom_install_script"
     fi
 }
 
@@ -274,7 +354,7 @@ install_custom() {
 # Homebrew if it's already installed.
 install_or_update_homebrew() {
     if [[ $(command -v brew) == "" ]]; then
-        log "🍺 Installing Hombrew"
+        log_header "🍺 Installing Hombrew"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
         # Add Homebrew to the user's PATH, if it's not already there.
@@ -282,7 +362,7 @@ install_or_update_homebrew() {
             export PATH=$HOMEBREW_PREFIX/bin:$PATH
         fi
     else
-        log "🍺 Updating Homebrew"
+        log_header "🍺 Updating Homebrew"
         brew update --force # https://github.com/Homebrew/brew/issues/1151
     fi
 }
@@ -296,10 +376,22 @@ is_laptop_installed() {
     fi
 }
 
-log() {
-    print -- "\n→ "$1"\n"
+# Create a soft symbolic link from the source file to the destination file, overwriting the link
+# if it already exists.
+# Parameters:
+#   source: The path to the source file to copy or URL of the file to download.
+#   destination: The destination path where the file will be copied or downloaded.
+link_file() {
+    source="$1"
+    destination="$2"
+
+    log "Creating a new symbolic link from $source to $destination"
+    ln -sf "$source" "$destination"
 }
 
+# Update the local Laptop repository, pulling down all new changes. If there are local changes the
+# user will be prompted to stash those changes before pulling. If the user declines the update will
+# be cancelled, but the script will continue.
 update_laptop_repository() {
     pushd $laptop_repo_directory > /dev/null
 
@@ -307,22 +399,22 @@ update_laptop_repository() {
     # they want to stash and pull the latest changes.
     if [[ `git status --porcelain` ]]; then
         # print -- '\n🤔 hmm... there are unsaved changes in the Laptop git repository at "'$laptop_repo_directory'".\n\nWe can stash those local changes and pull the latest changes from the remote repository. You would be able to reapply those local changes by running the command "cd '$laptop_repo_directory' && git stash pop". Or we can just proceed with using the current local version of Laptop.\n'
-        print -- "$unsaved_changes_prompt"
+        log "$unsaved_changes_prompt"
         # print -- 'Shall we proceed with stashing those changes? [Y/n]? '
         # read response
         read "response?Shall we proceed with stashing those changes? [Y/n]? "
 
         if [[ -z $response || $response =~ ^[Yy] ]]; then
         # if [[ "$REPLY" =~ ^[Nn]$ ]]; then
-            log "💾  Stashing Local Changes"
+            log_header "💾  Stashing Local Changes"
             git stash
         else
-            print -- "\nOK, we will skip pulling the latest changes.\n"
+            log "\nOK, we will skip pulling the latest changes.\n"
             return
         fi
     fi
 
-    log "💻  Updating Laptop Repository"
+    log_header "💻  Updating Laptop Repository"
     git fetch
     git checkout main
     git pull origin main
@@ -331,7 +423,7 @@ update_laptop_repository() {
 }
 
 main() {
-    print -- "\n💻 Configuring your Laptop\n--------------------------------------------\n"
+    log_title "💻 Configuring your Laptop"
 
     # By default, use the remote Laptop repository source files when configuring the computer.
     local laptop_src_location=$remote_laptop_src_directory
@@ -351,8 +443,6 @@ main() {
     install_or_update_homebrew
     install_apps
 
-    get_secrets
-
     configure_ssh "$laptop_src_location"
     configure_git "$laptop_src_location"
     configure_zsh "$laptop_src_location"
@@ -362,7 +452,9 @@ main() {
 
     clone_laptop_repository
 
-    print -- "\n🎉 Done!\n"
+    clear_secrets
+
+    log_title "🎉 Done!"
 }
 
 # Thank you for reading this script before running some strangers code!
