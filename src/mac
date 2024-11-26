@@ -4,12 +4,16 @@
 code_directory="$HOME/code"
 # Directory where a local copy of the Laptop repository will be cloned and stored.
 laptop_repo_directory="$code_directory/laptop"
-# Directory where the Laptop source code is stored
+# Directory where the Laptop source code is stored.
 laptop_src_directory="$laptop_repo_directory/src"
-# Directory where local Laptop configurations are stored
+# Directory where local Laptop configurations are stored.
 laptop_local_directory="$HOME/.laptop"
-# Directory where the user's custom install script is stored
+# Directory where the user's custom install script is stored.
 laptop_custom_install_script="$laptop_local_directory/.laptop.local"
+# Base URL for the remote Laptop repository.
+remote_laptop_base_url="https://raw.githubusercontent.com/ssmereka/laptop/refs/heads/main"
+# Remote URL of directory where the Laptop source code is stored.
+remote_laptop_src_directory="$remote_laptop_base_url/src"
 
 # Get the processor architecture from the operating system. Where "x86_64" 
 # is an Intel processor and "arm64" is an Apple Silicon processor.
@@ -53,24 +57,30 @@ clone_laptop_repository() {
         git clone git@github.com:ssmereka/laptop.git "$laptop_repo_directory"
 
         if [[ ! -f "$laptop_repo_directory/mac" ]]; then
-            echo -e "\n🔴 Error:  Failed to clone Laptop to \"$laptop_repo_directory\".\n"
-            exit 1
+            echo -e "\n🔴 Error:  Failed to clone Laptop to \"$laptop_repo_directory\".\n\n\tCommand:  git clone git@github.com:ssmereka/laptop.git \"$laptop_repo_directory\""
         fi
     fi
 }
 
 # Configure ASDF to manage Node.js and Ruby runtime versions.
+# Parameters:
+#   laptop_src_location: A local directory path or a remote URL for the Laptop source code
+#                        directory. Defaults to the "laptop_src_directory" variable.
 configure_asdf() {
+    laptop_src_location=${1:-"$laptop_src_directory"}
+
     log "🔧 Configuring ASDF"
 
     # Create a local ASDF configuration file, if one doesn't exist
     # https://asdf-vm.com/manage/configuration.html#asdf-config-file
-    copy_src_file_and_symlink ".asdfrc" "$HOME/.asdfrc" false
+    copy_file "$laptop_src_location/.asdfrc" "$laptop_local_directory/.asdfrc"
+    ln -sf "$laptop_local_directory/.asdfrc" "$HOME/.asdfrc"
 
     # Create a local .default-gems file, if one doesn't exist.
     # After Ruby is installed, the gems specified in this file will be installed.
     # https://github.com/asdf-vm/asdf-ruby?tab=readme-ov-file#default-gems
-    copy_src_file_and_symlink ".default-gems" "$HOME/.default-gems" false
+    copy_file "$laptop_src_location/.default-gems" "$laptop_local_directory/.default-gems"
+    ln -sf "$laptop_local_directory/.default-gems" "$HOME/.default-gems"
 
     # Source the ASDF version manager
     . $(brew --prefix asdf)/libexec/asdf.sh
@@ -102,12 +112,17 @@ configure_asdf() {
 }
 
 # Create a Git configuration file with the user's GitHub information from 1Password.
-configure_git() {   
+# Parameters:
+#   laptop_src_location: A local directory path or a remote URL for the Laptop source code
+#                        directory. Defaults to the "laptop_src_directory" variable.
+configure_git() {
+    laptop_src_location=${1:-"$laptop_src_directory"}
+
     log "🔧 Configuring Git"
 
     # Create a local Git configuration file from the Laptop template, if one doesn't exist.
     local_gitconfig="$laptop_local_directory/.gitconfig"
-    copy_file "$laptop_src_directory/.gitconfig" "$local_gitconfig" false
+    copy_file "$laptop_src_location/.gitconfig" "$local_gitconfig" false
 
     # Replace the templates variables using the information from 1Password
     sed -i '' "s|GIT_EMAIL|${git_email}|" "$local_gitconfig"
@@ -118,8 +133,13 @@ configure_git() {
     ln -sf "$local_gitconfig" "$HOME/.gitconfig"  
 }
 
-# Configure SSHto use the SSH keys in 1Password.
+# Configure SSH to use the SSH keys in 1Password.
+# Parameters:
+#   laptop_src_location: A local directory path or a remote URL for the Laptop source code
+#                        directory. Defaults to the "laptop_src_directory" variable.
 configure_ssh() {
+    laptop_src_location=${1:-"$laptop_src_directory"}
+
     log "🔧 Configuring SSH"
 
     # Create the default SSH directory (if it doesn't already exist)
@@ -129,7 +149,7 @@ configure_ssh() {
 
     # Create a local .ssh_config configuration file from the Laptop template, if one doesn't exist.
     local_ssh_config_path="$laptop_local_directory/.ssh_config"
-    copy_file "$laptop_src_directory/.ssh_config" "$local_ssh_config_path" false
+    copy_file "$laptop_src_location/.ssh_config" "$local_ssh_config_path" false
     
     # Grant the owner read/write permissions to the local SSH configuration file.
     # This is the required permission level for SSH to use the file.
@@ -140,7 +160,7 @@ configure_ssh() {
     
     # Create a local 1Password agent configuration file from the Laptop template, if one doesn't exist.
     local_onepassword_agent_path="$laptop_local_directory/agent.toml"
-    copy_file "$laptop_src_directory/agent.toml" "$local_onepassword_agent_path" false
+    copy_file "$laptop_src_location/agent.toml" "$local_onepassword_agent_path" false
     
     # Symbolicially link the local 1Password agent configuration to the default location.
     mkdir -p "$HOME/.config/1Password/ssh/"
@@ -148,61 +168,76 @@ configure_ssh() {
 }
 
 # Configure ZSH to use the Laptop configuration files.
+# Parameters:
+#   laptop_src_location: A local directory path or a remote URL for the Laptop source code
+#                        directory. Defaults to the "laptop_src_directory" variable.
 configure_zsh() {
+    laptop_src_location=${1:-"$laptop_src_directory"}
+
     log "🔧 Configuring ZSH"
 
     # Create a local ZSH configuration file, overwriting it if it already exists.
-    copy_src_file_and_symlink ".zshrc" "$ZDOTDIR/.zshrc" true
+    copy_file "$laptop_src_location/.zshrc" "$laptop_local_directory/.zshrc" true
+    ln -sf "$laptop_local_directory/.zshrc" "$ZDOTDIR/.zshrc"
 
-    copy_file "$laptop_src_directory/.zshrc_aliases" "$laptop_local_directory/.zshrc_aliases" true
-    copy_file "$laptop_src_directory/.zshrc_methods" "$laptop_local_directory/.zshrc_methods" true
+    # Create custom local ZSH configuration files, overwriting it if it already exists.
+    copy_file "$laptop_src_location/.zshrc_aliases" "$laptop_local_directory/.zshrc_aliases" true
+    copy_file "$laptop_src_location/.zshrc_methods" "$laptop_local_directory/.zshrc_methods" true
 }
 
 # Copy a file from the source path to the destination path if the file 
 # does not already exist. When "overwrite" is true, the file will be replaced.
 # Parameters:
-#   source: The path to the source file to copy.
-#   destination: The destination path where the file will be copied to.
-#   overwrite: A boolean value to determine if the destination file should be replaced.
+#   source: The path to the source file to copy or URL of the file to download.
+#   destination: The destination path where the file will be copied or downloaded.
+#   overwrite: A boolean indicating whether to replace the destination file; defaults to false.
 copy_file() {
     source=$1
     destination=$2
-    overwrite=$3
+    overwrite=${3:-false}
 
     destination_directory="$(dirname "${destination}")"
     mkdir -p "$destination_directory"
 
-    # Check if a file at the destination exists.
     if [[ $overwrite == true || ! -f "$destination" ]]; then
-        print -- "Created new file $destination"
-        # Destination doesn't exist, create a new file from the source
-        cp "$source" "$destination"
+        if [[ "$source" == http* ]]; then
+            print -- "Downloading file from $source to $destination"
+            curl -o "$destination" "$source"
+        else
+            print -- "Copying file from $source to $destination"
+            cp "$source" "$destination"
+        fi
     fi
-}
-
-# Copy a file from the Laptop source directory to the local Laptop directory and create a symbolic link to the default location.
-copy_src_file_and_symlink() {
-    filename=$1
-    default_location=$2
-    overwrite=$3
-
-    # Create a copy of the Laptop source file in the local Laptop directory.
-    # When "overwrite" is true, the file will not be replace even if it already exists.
-    copy_file "$laptop_src_directory/$filename" "$laptop_local_directory/$filename" $overwrite
-    
-    # Symbolicially link the local file to the default location.
-    ln -sf "$laptop_local_directory/$filename" "$default_location"
 }
 
 # Get secrets from 1Password and store them in global variables
 get_secrets() {
     log "🔐  Unlock 1Password"
 
+    # Make sure 1Password has an account configured and app integration enabled.
+    if [[ $(op account list --format=json 2>/dev/null) == "[]" ]]; then
+        echo -e "🔴 Error: There are no accounts configured for use with 1Password CLI. You must"\
+                "enable app integration and then rerun this script.\n\n\t "\
+                "Guide: https://developer.1password.com/docs/cli/app-integration/\n"
+        exit 1
+    fi
+    
     # Get the user's GitHub information from 1Password
     $(op signin)
     git_email=$(op item get GitHub --fields email)
     git_name=$(op item get GitHub --fields name)
     github_username=$(op item get GitHub --fields username)
+}
+
+# Install Xcode Command Line Tools, like git
+install_apple_developer_tools() {
+    if ! xcode-select -p &> /dev/null; then
+        echo "🍏 Installing Xcode Command Line Tools"
+        xcode-select --install
+
+        echo "🍏 Accepting the Xcode License"
+        sudo xcodebuild -license accept
+    fi
 }
 
 # Install applications using Homebrew
@@ -214,7 +249,22 @@ install_apps() {
     brew 'coreutils'
     brew 'curl'
     brew 'gawk'
+    brew 'gnupg' # Install gpg
 EOF
+
+    # Install applications using Cask
+    log "🔧 Installing Visual Studio Code"
+    brew install --cask visual-studio-code
+
+    log "🔧 Installing 1Password CLI"
+    brew install --cask 1password-cli
+
+
+    
+
+    # Prompt
+    # https://developer.1password.com/docs/cli/get-started/
+    # open -a 1password
 }
 
 install_custom() {
@@ -225,11 +275,6 @@ install_custom() {
     else
         log "🪄  No customizations found at $laptop_custom_install_script"
     fi
-}
-
-install_onepassword_cli() {
-    log "🔧 Installing 1Password CLI"
-    brew install --cask 1password-cli
 }
 
 # Install and configure the user's PATH to include Homebrew. Or update 
@@ -246,6 +291,15 @@ install_or_update_homebrew() {
     else
         log "🍺 Updating Homebrew"
         brew update --force # https://github.com/Homebrew/brew/issues/1151
+    fi
+}
+
+# Returns zero when the Laptop script is considered installed locally, otherwise returns one.
+is_laptop_installed() {
+    if [ -d "$laptop_repo_directory" ]; then
+        return 0 # Labtop is already installed.
+    else
+        return 1 # Laptop is not yet installed.
     fi
 }
 
@@ -284,27 +338,41 @@ update_laptop_repository() {
 }
 
 main() {
-    print -- "\n💻 Installing Laptop\n\nDon't go anywhere just yet, we may need you!\n--------------------------------------------\n"
+    print -- "\n💻 Configuring your Laptop\n--------------------------------------------\n"
 
-    clone_laptop_repository
-    update_laptop_repository
+    # By default, use the remote Laptop repository source files when configuring the computer.
+    local laptop_src_location=$remote_laptop_src_directory
+    
+    if is_laptop_installed; then
+        # Prompt the user for access to 1Password before long running tasks.
+        get_secrets
 
-    install_onepassword_cli
-    get_secrets
+        # Use the local files for configuration
+        laptop_src_location=$laptop_src_directory
 
-    print -- "\n🚀 Ok, we got this! Setting up your laptop ...time for a 🚬 smoke break?\n"
+        # Update the script's source code before continuing
+        update_laptop_repository
+    fi
+
+    install_apple_developer_tools
     install_or_update_homebrew
     install_apps
 
-    configure_git
-    configure_ssh
-    configure_zsh
-    configure_asdf
+    get_secrets
+
+    configure_ssh "$laptop_src_location"
+    configure_git "$laptop_src_location"
+    configure_zsh "$laptop_src_location"
+    configure_asdf "$laptop_src_location"
 
     install_custom
+
+    clone_laptop_repository
 
     print -- "\n🎉 Done!\n"
 }
 
-# Run this script
+# Thank you for reading this script before running some strangers code!
+
+# Run this script.
 main

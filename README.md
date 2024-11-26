@@ -25,6 +25,14 @@ A few secrets are required to get setup. Laptop is configured to retreive these 
 
 3. Follow the 1Password guides to [add a new SSH Key to 1Password](https://developer.1password.com/docs/ssh/get-started#step-1-generate-an-ssh-key) called `GitHub SSH Key`. Then [add this SSH key to your GitHub account](https://developer.1password.com/docs/ssh/get-started#step-2-upload-your-public-key-on-github).
 
+4. Follow the [1Password guide to enable App Integration](https://developer.1password.com/docs/cli/app-integration/) so you can use the 1Password CLI.
+
+    Recommend the following 1Password Developer settings:
+
+    ![1password_developer_settings_1](https://github.com/user-attachments/assets/8611fc21-c91a-486a-8c49-d584d13cd2e8)
+    ![1password_developer_settings_2](https://github.com/user-attachments/assets/9c693078-5e7a-4429-ad69-d458a19d504e)
+
+
 ### Install Laptop
 
 1. Review the [mac] script. Avoid running a script you haven't read!
