@@ -2,6 +2,9 @@
 
 # The system-wide profile can be found at /etc/zshrc.
 
+# Explicitly add Homebrew to the PATH, otherwise some terminals cannot find it.
+export PATH=/opt/homebrew/bin:$PATH
+
 # Enable Homebrew autocompletion, 
 # https://formulae.brew.sh/formula/zsh-completions
 if type brew &>/dev/null; then
