@@ -142,7 +142,15 @@ configure_asdf() {
     asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
     asdf install nodejs latest
     asdf global nodejs latest
-    log "\nInstalled Node.js $(node --version)"
+    log "\nUsing Node.js version $(node --version)"
+
+    # Install the lastest version of Python using ASDF
+    # https://github.com/asdf-community/asdf-python
+    log_header "🔧 Installing Python with ASDF"
+    asdf plugin-add python
+    asdf install python latest
+    asdf global python latest
+    log "\nUsing Python version $(python --version)"
 
     # Install the latest version of Ruby using ASDF
     # https://github.com/asdf-vm/asdf-ruby
@@ -150,16 +158,19 @@ configure_asdf() {
     asdf plugin add ruby https://github.com/asdf-vm/asdf-ruby.git
     asdf install ruby latest
     asdf global ruby latest
-    log "\nInstalled Ruby $(ruby --version)"
+    log "\nUsing Ruby version $(ruby --version)"
 
     # Install the latest version of Go using ASDF
     # https://github.com/asdf-community/asdf-golang?tab=readme-ov-file#asdf-golang
-    # log_header "🔧 Installing Go"
-    # asdf plugin add golang https://github.com/asdf-community/asdf-golang.git
-    # asdf install golang latest
-    # asdf global golang latest
-    # log "Installed Go $(go version)"
-    
+    log_header "🔧 Installing Go"
+    asdf plugin add golang https://github.com/asdf-community/asdf-golang.git
+    # Manually set this env varible to the non default value of "false". This will force go to use
+    # the exact versoins in .tool-versions and/or .go-version files. See
+    # https://github.com/asdf-community/asdf-golang?tab=readme-ov-file#version-selection
+    export ASDF_GOLANG_MOD_VERSION_ENABLED=false && asdf install golang latest
+    export ASDF_GOLANG_MOD_VERSION_ENABLED=false && asdf global golang latest
+    go_version=$(go version)
+    log "\nUsing Go version $go_version"
 }
 
 # Create a Git configuration file with the user's GitHub information from 1Password.
