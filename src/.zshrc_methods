@@ -35,10 +35,8 @@ lt-help() {
   \t⏳  history \t print command history, use "history | grep <search>" to search.
   
   🧰 Tools:
-  \t👻  nvm   \t https://github.com/nvm-sh/nvm
-  \t💎  rvm   \t https://rvm.io
-  \t🐍  pyenv \t 
-  \t🦔  gvm   \t https://github.com/moovweb/gvm
+  \t🧳  asdf  \t https://asdf-vm.com
+  \t🐍  pyenv \t https://github.com/pyenv/pyenv
 
   🔄 Kubernetes:
   \t k                  \t kubectl alias
