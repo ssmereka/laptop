@@ -17,6 +17,8 @@ compinit
 # Enable autocomplete for hidden (ie. dot) files.
 _comp_options+=(globdots)
 
+# Enable Atuin for managing shell history, https://atuin.sh
+eval "$(atuin init zsh)"
 
 # Enable autocomplete for 1Password CLI, 
 # https://developer.1password.com/docs/cli/reference/commands/completion/

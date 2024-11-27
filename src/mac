@@ -13,7 +13,7 @@ laptop_repo_directory="$code_directory/laptop"
 laptop_src_directory="$laptop_repo_directory/src"
 
 # Directory where local Laptop configurations are stored.
-laptop_local_directory="$HOME/.laptop"
+laptop_local_directory="$HOME/.config/laptop"
 
 # Directory where the user's custom install script is stored.
 laptop_custom_install_script="$laptop_local_directory/.laptop.local"
@@ -251,6 +251,10 @@ configure_zsh() {
     # Create custom local ZSH configuration files, overwriting it if it already exists.
     copy_file "$laptop_src_location/.zshrc_aliases" "$laptop_local_directory/.zshrc_aliases" true
     copy_file "$laptop_src_location/.zshrc_methods" "$laptop_local_directory/.zshrc_methods" true
+
+    # Create a Atuin configuration file, without overwriting the file in laptop_local_directory.
+    copy_file "$laptop_src_location/atuin_config.toml" "$laptop_local_directory/atuin_config.toml" false
+    link_file "$laptop_local_directory/atuin_config.toml" "$HOME/.config/atuin/config.toml"
 }
 
 # Copy a file from the source path to the destination path if the file 
@@ -328,7 +332,8 @@ install_apps() {
     brew 'coreutils'
     brew 'curl'
     brew 'gawk'
-    brew 'gnupg' # Install gpg
+    brew 'gnupg' # https://www.gnupg.org
+    brew 'atuin' # https://atuin.sh
 EOF
 
     log_header "🔧 Installing Applications"
@@ -431,7 +436,10 @@ update_laptop_repository() {
     popd > /dev/null
 }
 
-main() {
+
+# Command Methods
+
+install() {
     log_title "💻 Configuring your Laptop"
 
     # By default, use the remote Laptop repository source files when configuring the computer.
@@ -463,10 +471,76 @@ main() {
 
     clear_secrets
 
-    log_title "🎉 Done!"
+    log_title "🎉 Done! Open a new shell to complete the installation."
 }
 
-# Thank you for reading this script before running some strangers code!
+# Remove everything this script added during installation.
+uninstall() {
+    # TODO: This method is incomplete at the moment.
 
-# Run this script.
-main
+    log_header "🔨 Uninstalling Applications"
+
+    if brew list asdf &>/dev/null; then
+        brew uninstall asdf
+    fi
+    if brew list atuin &>/dev/null; then
+        brew uninstall atuin # https://atuin.sh
+    fi
+
+    # TODO: Ask if you want to uninstall these
+    # brew uninstall gh
+    # brew uninstall coreutils
+    # brew uninstall curl
+    # brew uninstall gawk
+    # brew uninstall gnupg # https://www.gnupg.org
+
+    log_header "🗂️ Removing Application Data"
+
+    # Remove Laptop data
+    rm -rf "$laptop_local_directory"
+
+    # Remove Atuin Application Data
+    rm -rf "$HOME/.config/atuin"
+
+    log "\n🎉 Done. Restart your shell to complete the uninstall."
+}
+
+# Interprit commandline arguments and run the appropriate methods.
+main() {
+    install_flag=false
+    uninstall_flag=false
+
+    # Check for available commands
+    for arg in "$@"; do
+        if [[ "$arg" == "uninstall" ]]; then
+            uninstall_flag=true
+            break
+        fi
+
+        if [[ "$arg" == "install" ]]; then
+            install_flag=true
+            break
+        fi
+    done
+
+    # Run the appropriate command(s)
+
+    if [[ $uninstall_flag == true ]]; then
+        uninstall
+    
+    elif [[ $install_flag == true ]]; then
+        install
+    
+    # By default, run the install command.
+    else    
+        install
+    fi
+}
+
+# Hey... Thank you for reading this script before running some strangers code.
+
+
+# Run main only if the script is executed directly; not when sourced.
+if [[ "${(%):-%N}" == "$0" ]]; then
+    main "$@"
+fi
