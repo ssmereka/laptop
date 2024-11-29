@@ -1,17 +1,45 @@
-[user]
-    name = GIT_NAME
-    email = GIT_EMAIL
-[github]
-    user = GITHUB_USERNAME
 [alias]
     a = add
     ca = commit -a
     cam = commit -am
-    s = status
-    pom = push origin master
-    pog = push origin gh-pages
-    puom = pull origin master
-    puog = pull origin gh-pages
     cob = checkout -b
+    lg = log --oneline --graph --decorate --all
+    pog = push origin gh-pages
+    pom = push origin master
+    puog = pull origin gh-pages
+    puom = pull origin master
+    s = status
+[color]
+    ui = auto
+[commit]
+    gpgsign = true
+[core]
+    editor = code --wait
 [credential]
     helper = osxkeychain
+[diff]
+    tool = vscode
+[difftool "vscode"]
+    cmd = code --wait --diff $LOCAL $REMOTE
+[github]
+    user = GIT_USERNAME
+[gpg]
+  format = ssh
+[gpg "ssh"]
+    program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
+[help]
+    autocorrect = 1
+[merge]
+    tool = vscode
+[mergetool "vscode"]
+    cmd = code --wait $MERGED
+[pull]
+    rebase = true
+[push]
+    default = simple
+[user]
+    name = GIT_NAME
+    email = GIT_EMAIL
+    signingkey = GIT_SSH_PUBLIC_KEY
+[tag]
+    gpgSign = true
