@@ -64,9 +64,6 @@ OR
 curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh
 ```
 
-![laptop-help](https://github.com/ssmereka/laptop/assets/489291/6be6ecfb-ed78-498c-abca-3abc9e4662fb)
-
-
 ### Using Laptop
 
 Laptop installs software and configures your Laptop. It also provides some useful commands. Run the command `help` in your terminal for a list of available commands. (You may need to relaunch your terminal if the command doesn't work)
@@ -78,21 +75,21 @@ Laptop installs software and configures your Laptop. It also provides some usefu
 Laptop installs and configures the following software:
 
 * [1Password CLI] for secret management from the commandline.
-* [asdf](asdf) for managing programming language versions.
-    * [Go](https://go.dev) via the [asdf-golang](asdf-golang) plugin.
-    * [Node.js](Node.js) and npm via the [asdf-nodejs](asdf-nodejs) plugin.
-    * [Python](Python) via the [asdf-python](asdf-python) plugin.
-    * [Ruby](Ruby) via the [asdf-ruby](asdf-ruby) plugin.
-* [Atuin](https://atuin.sh)
-* [Core Utils](Core Utils) for GNU File, Shell, and Text utilities.
-* [Curl](Curl) for interacting with URLs from the commandline.
-* [Gawk](Gawk) for interacting with files via the commandline.
-* [Git](Git) configures the local mac Git client for use with 1Password and GitHub.
-* [GitHub CLI](GitHub CLI) for interacting with the GitHub API.
-* [GnuPG](GnuPG) for encryption and signing.
-* [Homebrew](Homebrew) for managing operating system libraries.
-* [Visual Studio Code](Visual Studio Code) for a programming IDE.
-* [Zsh](Zsh) configures zsh with some opinions (see the [Zsh Manual]).
+* [asdf] for managing programming language versions.
+    * [Go] via the [asdf-golang] plugin.
+    * [Node.js] and npm via the [asdf-nodejs] plugin.
+    * [Python] via the [asdf-python] plugin.
+    * [Ruby] via the [asdf-ruby] plugin.
+* [Atuin]
+* [Core Utils] for GNU File, Shell, and Text utilities.
+* [Curl] for interacting with URLs from the commandline.
+* [Gawk] for interacting with files via the commandline.
+* [Git] configures the local mac Git client for use with 1Password and GitHub.
+* [GitHub CLI] for interacting with the GitHub API.
+* [GnuPG] for encryption and signing.
+* [Homebrew] for managing operating system libraries.
+* [Visual Studio Code] for a programming IDE.
+* [Zsh]configures zsh with some opinions (see the [Zsh Manual]).
 
 
 Laptop will configure your computer in a very opinionated way. Let's describe those opinions and how the script is configured to meet them.
@@ -120,6 +117,10 @@ Language version managers are installed for Node.js, Python, Go, and Ruby. Enabl
 ### Code Directory
 
 Coding projects from git repositories are stored in the local `~/code` directory. This make it easy to find git projects.
+
+### Secrets
+
+Secrets belong in a password manager or secret storage **and** you should authorize when anything tries to access those secrets. Laptop will install and configure the 1Password CLI so that secrets can be retrieved programmatically. Git is also configured to use 1Password for authentication and signing.
 
 ## Customize Laptop
 

@@ -25,23 +25,20 @@ lt-help() {
   💻 Laptop Commands:
 
   \t🍰  lt-alias  \t list alias commands.
+  \t🏥  lt-help   \t displays this help menu, can also use "help".
   \t🔄  lt-k8s    \t list kubernetes commands.
   \t🏓  lt-myip   \t displays external IP address.
+  \t📥  lt-reset  \t update this "Laptop" software and reset the local configs.
   \t📥  lt-update \t update this "Laptop" software.
-  \t🏥  lt-help   \t displays this help menu, can also use "help".
-
-  🧙 Zsh:
-  \t⏳  CTRL+R  \t interactive command history search. Press CTRL+R again to go to next.
-  \t⏳  history \t print command history, use "history | grep <search>" to search.
-  
+ 
   🧰 Tools:
   \t🧳  asdf  \t https://asdf-vm.com
+  \t🍺  brew  \t http://brew.sh/
+  \t🐵  code  \t https://code.visualstudio.com
+  \t🐱  gh    \t https://cli.github.com/
+  \t🌳  git   \t https://git-scm.com
+  \t🔐  op    \t https://developer.1password.com/docs/cli
   \t🐍  pyenv \t https://github.com/pyenv/pyenv
-
-  🔄 Kubernetes:
-  \t k                  \t kubectl alias
-  \t kcontext <context> \t change to context
-  \t kns <namespace>    \t use namespace
   '
 }
 

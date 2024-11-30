@@ -15,8 +15,13 @@ laptop_src_directory="$laptop_repo_directory/src"
 # Directory where local Laptop configurations are stored.
 laptop_local_directory="$HOME/.config/laptop"
 
+# Directory where a user's custom configurations and scripts that are specific to the current
+# computer. Items in this folder will not be modified by Laptop, but it will run and source 
+# files from this directory.
+laptop_custom_directory="$HOME/.laptop"
+
 # Directory where the user's custom install script is stored.
-laptop_custom_install_script="$laptop_local_directory/.laptop.local"
+laptop_custom_install_script="$laptop_custom_directory/custom_install.sh"
 
 # Base URL for the remote Laptop repository.
 remote_laptop_base_url="https://raw.githubusercontent.com/ssmereka/laptop/refs/heads/main"
@@ -270,6 +275,11 @@ configure_ssh() {
     # Symbolicially link the local 1Password agent configuration to the default location.
     mkdir -p "$HOME/.config/1Password/ssh/"
     link_file "$local_onepassword_agent_path" "$HOME/.config/1Password/ssh/agent.toml"
+
+    # Follow 1Password's recommendation to create a shortcut to the 1Password SSH Agent 
+    # Integration, ie "~/.1password/agent.sock".
+    mkdir -p "$HOME/.1password"
+    link_file "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock" "$HOME/.1password/agent.sock"
 }
 
 # Configure ZSH to use the Laptop configuration files.
@@ -415,7 +425,7 @@ install_custom() {
         chmod +x "$laptop_custom_install_script"
         "$laptop_custom_install_script"
     else
-        log "No customizations found at $laptop_custom_install_script"
+        log "No customizations found at $laptop_custom_install_script".
     fi
 }
 

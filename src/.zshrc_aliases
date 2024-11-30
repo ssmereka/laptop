@@ -9,15 +9,22 @@ alias pym='python manage.py'
 # Navigate up the directory tree quickly
 alias ..='cd ..'
 alias ...='cd ../..'
-alias ....='cd ../../..'
-alias .....='cd ../../../..'
+alias .4='cd ../../..'
+alias .5='cd ../../../..'
+alias .6='cd ../../../..'
+alias .7='cd ../../../..'
+alias .8='cd ../../../..'
+alias .9='cd ../../../..'
 
 # Kubectl Aliases
 alias k='kubectl'
 alias kcontext='kubectl config use-context'
 
 # Update the "Laptop" software
-alias lt-update='curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh'
+alias lt-update='curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac install | zsh'
+
+# Update the Laptop software and reset the local configs to the default values
+alias lt-update='curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac install -f| zsh'
 
 # Display external IP address
 alias lt-myip='curl ipinfo.io/ip'
