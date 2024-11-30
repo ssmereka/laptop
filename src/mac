@@ -319,6 +319,12 @@ copy_file() {
     fi
 }
 
+clear_laptop_configs() {
+    log "Removing local Laptop configurations. Any changes made after the Laptop install will be" \
+        "removed."
+    rm -rf "$laptop_local_directory"
+}
+
 # Get secrets from 1Password and store them in global variables. This is a seperate method to
 # so secrets can be gathered at the start of the script to prevent user interactions in the 
 # middle of a lengthy script.
@@ -486,6 +492,8 @@ update_laptop_repository() {
 # Command Methods
 
 install() {
+    force_flag="$1"
+
     log_title "💻 Configuring your Laptop"
 
     # By default, use the remote Laptop repository source files when configuring the computer.
@@ -500,6 +508,12 @@ install() {
 
         # Update the script's source code before continuing
         update_laptop_repository
+    fi
+
+    if [[ $force_flag == true ]]; then
+        # Delete all local configurations so that they will be recreated with the default values.
+        # Effectively removing any local changes made after the script was initially run.
+        clear_laptop_configs
     fi
 
     install_apple_developer_tools
@@ -555,18 +569,26 @@ uninstall() {
 main() {
     install_flag=false
     uninstall_flag=false
+    force_flag=false
 
-    # Check for available commands
-    for arg in "$@"; do
-        if [[ "$arg" == "uninstall" ]]; then
-            uninstall_flag=true
-            break
-        fi
+    additional_args=()
 
-        if [[ "$arg" == "install" ]]; then
-            install_flag=true
-            break
-        fi
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -f|--force)
+                force_flag=true
+                ;;
+            install)
+                install_flag=true
+                ;;
+            uninstall)
+                uninstall_flag=true
+                ;;
+            *)
+                additional_args+=("$1")
+                ;;
+        esac
+        shift
     done
 
     # Run the appropriate command(s)
@@ -575,11 +597,11 @@ main() {
         uninstall
     
     elif [[ $install_flag == true ]]; then
-        install
+        install $force_flag
     
     # By default, run the install command.
     else    
-        install
+        install $force_flag
     fi
 }
 
