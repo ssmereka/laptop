@@ -30,6 +30,7 @@
     # Use the SSH key instead of a GPG for signing.
     format = ssh
 [gpg "ssh"]
+	allowedSignersFile = PATH_TO_GIT_ALLOWED_SIGNERS
     # Use the 1Password's binary for signing, so you don't have to set SSH_AUTH_SOCK.
     program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
 [help]

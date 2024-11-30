@@ -204,20 +204,32 @@ configure_git() {
 
     log_header "🔧 Configuring Git"
 
-    # Create a local Git configuration file from the Laptop template.
-    local_gitconfig="$laptop_local_directory/.gitconfig"
-    copy_file "$laptop_src_location/.gitconfig" "$local_gitconfig"
-
     if [[ -z "$git_email" || -z "$git_name" || -z "$git_username" || -z "$git_ssh_public_key" ]]; then
         get_secrets
     fi
 
-    # Replace the templates variables using the information from 1Password
+    # Create a local Git allowed signers file from the Laptop template.
+    local_git_allowed_signers="$laptop_local_directory/.git-allowed-signers"
+    copy_file "$laptop_src_location/.git-allowed-signers" "$local_git_allowed_signers"
+    chmod 600 "$local_git_allowed_signers"
+
+    # Create a local Git configuration file from the Laptop template.
+    local_gitconfig="$laptop_local_directory/.gitconfig"
+    copy_file "$laptop_src_location/.gitconfig" "$local_gitconfig"
+
+    # Replace the allowed signers template variables using the information from 1Password.
+    sed -i '' "s|GIT_SSH_PUBLIC_KEY|${git_ssh_public_key}|" "$local_git_allowed_signers"
+
+    # Replace the gitconfig template variables using the information from 1Password.
     sed -i '' "s|GIT_EMAIL|${git_email}|" "$local_gitconfig"
     sed -i '' "s|GIT_NAME|${git_name}|" "$local_gitconfig"
     sed -i '' "s|GIT_SSH_PUBLIC_KEY|${git_ssh_public_key}|" "$local_gitconfig"
     sed -i '' "s|GIT_USERNAME|${git_username}|" "$local_gitconfig"
-    
+
+    # Replace the gitconfig template allowed signers path variable with the location of the newly
+    # configured allowed signers file.
+    sed -i '' "s|PATH_TO_GIT_ALLOWED_SIGNERS|${local_git_allowed_signers}|" "$local_gitconfig"
+
     clear_secrets
 
     # Symbolically link the .gitconfig to the proper location.
