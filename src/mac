@@ -381,11 +381,11 @@ install_apps() {
     log_header "🔧 Installing Homebrew Applications"
 
     brew bundle --file=- <<EOF
-    brew 'gh'
-    brew 'asdf' # Requires coreutils, curl, and gawk
-    brew 'coreutils'
-    brew 'curl'
-    brew 'gawk'
+    brew 'gh' # https://cli.github.com
+    brew 'asdf' # Requires coreutils, curl, and gawk, https://asdf-vm.com
+    brew 'coreutils' # https://formulae.brew.sh/formula/coreutils
+    brew 'curl' # https://curl.se
+    brew 'gawk' # https://www.gnu.org/software/gawk/
     brew 'gnupg' # https://www.gnupg.org
     brew 'atuin' # https://atuin.sh
 EOF

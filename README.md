@@ -11,9 +11,9 @@ It supports macOS Ventura (13) on Apple Silicon and Intel processors.
 
 ### Setup your Secrets
 
-A few secrets are required to get setup. Laptop is configured to retreive these secrets from [1Password](https://1password.com). So you're going to need 1Password for this to work out of the box.
+A few secrets are required to get setup. Laptop is configured to retreive these secrets from [1Password](1Password). So you're going to need 1Password for this to work out of the box.
 
-1. Download, install, and login to the [1Password MacOS application](https://downloads.1password.com/mac/1Password.zip).
+1. Download, install, and login to the [1Password MacOS application](1Password MacOS application).
 
 2. Unlock 1Password and add a `Login` item called `GitHub` with the following `fields`:
 
@@ -23,9 +23,13 @@ A few secrets are required to get setup. Laptop is configured to retreive these 
     | text | `email` | john@smith.com | Personal email address to be used in Git configuration |
     | text | `username` | jsmith | GitHub username |
 
-3. Follow the 1Password guides to [add a new SSH Key to 1Password](https://developer.1password.com/docs/ssh/get-started#step-1-generate-an-ssh-key) called `GitHub SSH Key`. Then [add this SSH key to your GitHub account](https://developer.1password.com/docs/ssh/get-started#step-2-upload-your-public-key-on-github).
+3. Follow the 1Password guide to [add a new SSH Key to 1Password](https://developer.1password.com/docs/ssh/get-started#step-1-generate-an-ssh-key) called `GitHub SSH Key`. 
 
-4. Follow the [1Password guide to enable App Integration](https://developer.1password.com/docs/cli/app-integration/) so you can use the 1Password CLI.
+4. Follow the 1Password guide to [add the public SSH key to your GitHub account as an Authentication Key](https://developer.1password.com/docs/ssh/get-started#step-2-upload-your-public-key-on-github).
+
+5. Follow the 1Password guide to [add the public SSH key to your GitHub account as a Signing Key](https://developer.1password.com/docs/ssh/git-commit-signing).
+
+6. Follow the [1Password guide to enable App Integration](https://developer.1password.com/docs/cli/app-integration/) so you can use the 1Password CLI.
 
     Recommend the following 1Password Developer settings:
 
@@ -73,19 +77,29 @@ Laptop installs software and configures your Laptop. It also provides some usefu
 
 Laptop installs and configures the following software:
 
-* [Homebrew](http://brew.sh/) for managing operating system libraries.
-* [Git] configures the local mac Git client for use with 1Password and GitHub.
-* [GitHub CLI] for interacting with the GitHub API
-* [Zsh] configures zsh with some opinions
-* [asdf] for managing programming language versions
-* [Node.js] and npm (via the [asdf-nodejs] plugin)
-* [Ruby] and npm (via the [asdf-ruby] plugin)
+* [1Password CLI](1Password CLI) for secret management from the commandline.
+* [asdf](asdf) for managing programming language versions.
+    * [Go](https://go.dev) via the [asdf-golang](asdf-golang) plugin.
+    * [Node.js](Node.js) and npm via the [asdf-nodejs](asdf-nodejs) plugin.
+    * [Python](Python) via the [asdf-python](asdf-python) plugin.
+    * [Ruby](Ruby) via the [asdf-ruby](asdf-ruby) plugin.
+* [Atuin](https://atuin.sh)
+* [Core Utils](Core Utils) for GNU File, Shell, and Text utilities.
+* [Curl](Curl) for interacting with URLs from the commandline.
+* [Gawk](Gawk) for interacting with files via the commandline.
+* [Git](Git) configures the local mac Git client for use with 1Password and GitHub.
+* [GitHub CLI](GitHub CLI) for interacting with the GitHub API.
+* [GnuPG](GnuPG) for encryption and signing.
+* [Homebrew](Homebrew) for managing operating system libraries.
+* [Visual Studio Code](Visual Studio Code) for a programming IDE.
+* [Zsh](Zsh) configures zsh with some opinions (see the [Zsh Manual](Zsh Manual)).
+
 
 Laptop will configure your computer in a very opinionated way. Let's describe those opinions and how the script is configured to meet them.
 
 ### ZSH Configuration
 
-We believe terminal history should persist indefinitely as evidence of the actions you have taken.
+Terminal history should persist indefinitely as evidence of the actions you have taken.
 
 Your history is a timeline of actions you have taken that can be leveraged for a number of use-caes. Like recalling what you did to setup an application. Or reviewing actions taken during an outage.
 
@@ -93,23 +107,23 @@ The zsh history is configured to store all (well... 999,999,999) events in the t
 
 If you need to enter secret information into your terminal prefix the command with a `space`, like `" SECRET=my-password"`. Any command the begins with a `space` will not be stored in the history.
 
-Use commands like `history | grep <search term here>` or interactive history search with `CTRL+R` to query the history events. These commands are listed in the Laptop screen too, just run `help`.
+Use [Atuin](https://atuin.sh) (using the `Up Arrow` or `CTRL+R`) to interactively view and search your history. Programmatically search with the `history` command, like `history | grep <search term here>`.
 
 ### ASDF Version Manager
 
-When developing you want your development environment to be as close to production as is reasonable. Switching between mutliple versions of software is complicated. To make switching easier we setup version managers and package managers.
+When developing you want your development environment to be as close to production as is reasonable. Switching between mutliple versions of software is complicated. To make switching easier, use version managers and package managers.
 
-[Homebrew](https://brew.sh), mac's unofficial package manager, is installed and used to manage the installation of 3rd party software, like `1password`.
+[Homebrew](https://brew.sh), mac's unofficial package manager, is installed and used to manage the installation of 3rd party software, like `1password` and `curl`.
 
-Version managers are installed for Node.js, Python, Go, and Ruby. Enabling you to quickly install and use different versions for application development. These version manager are all managed by [asdf].
+Language version managers are installed for Node.js, Python, Go, and Ruby. Enabling you to quickly install and use different versions for each application you are developing. These version manager are all managed by [asdf](https://asdf-vm.com). This makes interaction with version managers more consistant as you switch between them or need to add/remove version managers.
 
 ### Code Directory
 
-Coding projects from git repositories are stored in the local `~/code` directory.
+Coding projects from git repositories are stored in the local `~/code` directory. This make it easy to find git projects.
 
 ## Customize Laptop
 
-If provided, your local file `~/.laptop.local` is run at the end of the Laptop script. Put your customizations there.
+If provided, your local file `~/.laptop.local` is run at the end of the Laptop script. Put your customizations there for your specific machine.
 
 For example:
 
@@ -123,14 +137,28 @@ EOF
 
 Write your customizations such that they can be run safely more than once.
 
-
+[1Password]: https://1password.com
+[1Password CLI]: https://developer.1password.com/docs/cli/get-started/
+[1Password MacOS application]: https://downloads.1password.com/mac/1Password.zip
+[asdf]: https://asdf-vm.com
+[asdf-golang]: https://github.com/asdf-community/asdf-golang?tab=readme-ov-file#version-selection
+[asdf-nodejs]: https://github.com/asdf-vm/asdf-nodejs
+[asdf-python]: https://github.com/asdf-community/asdf-python
+[asdf-ruby]: https://github.com/asdf-vm/asdf-ruby
+[Atuin]: https://atuin.sh
+[Core Utils]: https://formulae.brew.sh/formula/coreutils
+[Curl]: https://curl.se
 [mac]: https://github.com/ssmereka/laptop/blob/main/src/mac
 [Homebrew]: http://brew.sh/
+[Gawk]: https://www.gnu.org/software/gawk/
 [Git]: https://git-scm.com/
 [GitHub CLI]: https://cli.github.com/
-[Zsh]: http://www.zsh.org/
-[asdf]: https://github.com/asdf-vm/asdf
+[Go]: https://go.dev
+[GnuPG]: https://www.gnupg.org
 [Node.js]: https://nodejs.org/en
+[Python]: https://www.python.org
 [Ruby]: https://www.ruby-lang.org/en/
-[asdf-nodejs]: https://github.com/asdf-vm/asdf-nodejs
-[asdf-ruby]: https://github.com/asdf-vm/asdf-ruby
+[Visual Studio Code]: https://code.visualstudio.com
+[Zsh]: http://www.zsh.org/
+[Zsh Manual]: https://zsh.sourceforge.io/Doc/Release/The-Z-Shell-Manual.html#The-Z-Shell-Manual
+
