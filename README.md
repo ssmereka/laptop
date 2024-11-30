@@ -15,21 +15,24 @@ A few secrets are required to get setup. Laptop is configured to retreive these 
 
 1. Download, install, and login to the [1Password MacOS application](1Password MacOS application).
 
+2. Create a [GitHub Personal Access Token].
+
 2. Unlock 1Password and add a `Login` item called `GitHub` with the following `fields`:
 
     | Type | Label | Example Value | Description |
     | -----| ----- | ------------- | ----------- |
     | text | `name` | John Smith | Full name to be used in Git configuration |
     | text | `email` | john@smith.com | Personal email address to be used in Git configuration |
+    | text | `token` | github_pat_asdfjkl | GitHub Personal Access Token to be used with GitHub CLI |
     | text | `username` | jsmith | GitHub username |
 
-3. Follow the 1Password guide to [add a new SSH Key to 1Password](https://developer.1password.com/docs/ssh/get-started#step-1-generate-an-ssh-key) called `GitHub SSH Key`. 
+3. Generate and save a new [SSH Key to 1Password] with the name `GitHub SSH Key`.
 
-4. Follow the 1Password guide to [add the public SSH key to your GitHub account as an Authentication Key](https://developer.1password.com/docs/ssh/get-started#step-2-upload-your-public-key-on-github).
+4. Create a [Authentication SSH Key in GitHub] with the public portion of the SSH Key you just added to 1Password.
 
-5. Follow the 1Password guide to [add the public SSH key to your GitHub account as a Signing Key](https://developer.1password.com/docs/ssh/git-commit-signing).
+5. Create a [Signing SSH Key in GitHub] with the public portion of the SSH Key you just added to 1Password.
 
-6. Follow the [1Password guide to enable App Integration](https://developer.1password.com/docs/cli/app-integration/) so you can use the 1Password CLI.
+6. Enable [1Password App Integration] so you can use the 1Password CLI.
 
     Recommend the following 1Password Developer settings:
 
@@ -142,6 +145,7 @@ EOF
 Write your customizations such that they can be run safely more than once.
 
 [1Password]: https://1password.com
+[1Password App Integration]: https://developer.1password.com/docs/cli/app-integration/
 [1Password CLI]: https://developer.1password.com/docs/cli/get-started/
 [1Password MacOS application]: https://downloads.1password.com/mac/1Password.zip
 [asdf]: https://asdf-vm.com
@@ -150,6 +154,7 @@ Write your customizations such that they can be run safely more than once.
 [asdf-python]: https://github.com/asdf-community/asdf-python
 [asdf-ruby]: https://github.com/asdf-vm/asdf-ruby
 [Atuin]: https://atuin.sh
+[Authentication SSH Key in GitHub]: https://developer.1password.com/docs/ssh/get-started#step-2-upload-your-public-key-on-github
 [Core Utils]: https://formulae.brew.sh/formula/coreutils
 [Curl]: https://curl.se
 [mac]: https://github.com/ssmereka/laptop/blob/main/src/mac
@@ -157,11 +162,14 @@ Write your customizations such that they can be run safely more than once.
 [Gawk]: https://www.gnu.org/software/gawk/
 [Git]: https://git-scm.com/
 [GitHub CLI]: https://cli.github.com/
+[GitHub Personal Access Token]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
 [Go]: https://go.dev
 [GnuPG]: https://www.gnupg.org
 [Node.js]: https://nodejs.org/en
 [Python]: https://www.python.org
 [Ruby]: https://www.ruby-lang.org/en/
+[Signing SSH Key in GitHub]: https://developer.1password.com/docs/ssh/git-commit-signing
+[SSH Key to 1Password]: https://developer.1password.com/docs/ssh/get-started#step-1-generate-an-ssh-key
 [Visual Studio Code]: https://code.visualstudio.com
 [Zsh]: http://www.zsh.org/
 [Zsh Manual]: https://zsh.sourceforge.io/Doc/Release/The-Z-Shell-Manual.html#The-Z-Shell-Manual
