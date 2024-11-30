@@ -24,7 +24,7 @@ alias kcontext='kubectl config use-context'
 alias lt-update='curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac install | zsh'
 
 # Update the Laptop software and reset the local configs to the default values
-alias lt-update='curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac install -f| zsh'
+alias lt-reset='curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac install -f| zsh'
 
 # Display external IP address
 alias lt-myip='curl ipinfo.io/ip'
