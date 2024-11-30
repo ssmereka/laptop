@@ -26,7 +26,7 @@ remote_laptop_src_directory="$remote_laptop_base_url/src"
 
 # Prompt to inform the user that there are unsaved changes in the Laptop git repository.
 unsaved_changes_prompt='🚨 Attention: Cannot pull the latest changes from the remote Laptop
-              repository, because there are local changes.
+              repository, because there are local changes or you are not on the "main" branch.
 
 Y:  Proceed without the latest changes from the remote Laptop repository.
 
@@ -467,7 +467,7 @@ update_laptop_repository() {
 
     # If there are changes in the local repository, ask the user if 
     # they want to stash and pull the latest changes.
-    if [[ `git status --porcelain` ]]; then
+    if [[ `git status --porcelain` || $(git rev-parse --abbrev-ref HEAD) != "main" ]]; then
         log "$unsaved_changes_prompt"
         read "response?Continue without pulling the latest changes? [Y/n]? "
 
