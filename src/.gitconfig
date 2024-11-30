@@ -20,6 +20,7 @@
 [credential]
     helper = osxkeychain
 [diff]
+    #
     tool = vscode
 [difftool "vscode"]
     cmd = code --wait --diff $LOCAL $REMOTE
