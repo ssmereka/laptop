@@ -21,10 +21,10 @@ alias k='kubectl'
 alias kcontext='kubectl config use-context'
 
 # Update the "Laptop" software
-alias lt-update='curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac install | zsh'
+alias lt-update='curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh'
 
 # Update the Laptop software and reset the local configs to the default values
-alias lt-reset='curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac install -f| zsh'
+alias lt-reset='curl -o /tmp/laptop_mac https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac && chmod +x /tmp/laptop_mac && /tmp/laptop_mac install -f'
 
 # Display external IP address
 alias lt-myip='curl ipinfo.io/ip'
