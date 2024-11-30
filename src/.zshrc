@@ -136,7 +136,6 @@ eval "$(pyenv init -)"
 # Sources any files in the default Laptop directory (ie "~/.config/.laptop") that contain "zshrc_"
 # in the filename. For example, "~/.config/.laptop/.zshrc_methods".
 if [[ -d "$HOME/.config/laptop" ]]; then
-  # for file in $HOME/.laptop/**/*(.); do 
   for file in $HOME/.config/laptop/*(DN); do 
     if [[ "$file" =~ "zshrc_" ]]; then
       source $file; 
@@ -147,7 +146,6 @@ fi
 # Sources any files in the user's defined Laptop directory (ie "~/.laptop") that contain "zshrc_"
 # in the filename. For example, "~/.laptop/.zshrc_my_work_config".
 if [[ -d "$HOME/.laptop" ]]; then
-  # for file in $HOME/.laptop/**/*(.); do 
   for file in $HOME/.laptop/*(DN); do 
     if [[ "$file" =~ "zshrc_" ]]; then
       source $file; 

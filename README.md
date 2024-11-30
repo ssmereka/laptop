@@ -68,7 +68,7 @@ curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh
 
 Laptop installs software and configures your Laptop. It also provides some useful commands. Run the command `help` in your terminal for a list of available commands. (You may need to relaunch your terminal if the command doesn't work)
 
-![laptop-help](https://github.com/ssmereka/laptop/assets/489291/6be6ecfb-ed78-498c-abca-3abc9e4662fb)
+![laptop-help](https://github.com/user-attachments/assets/0552bd40-ceff-41d1-b8fa-94d39c908792)
 
 ## What does Laptop setup?
 
