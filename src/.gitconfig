@@ -15,6 +15,7 @@
     # Automatically sign all commits so you don't have to specify -S
     gpgsign = true
 [core]
+    # Runs VS Code and ensures Git waits for the editor to close before continuing with the operation.
     editor = code --wait
 [credential]
     helper = osxkeychain
