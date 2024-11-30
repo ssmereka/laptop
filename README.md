@@ -3,7 +3,7 @@ Laptop is a script to set up your computer for software development.
 
 It's idempotent and installs, upgrades, or skips packages based on what is already installed on the machine. In otherwords, there's no downside to running it again and again.
 
-It supports macOS Ventura (13) on Apple Silicon and Intel processors. 
+It supports macOS on Apple Silicon and Intel processors.
 
 >Inspired by [Thoughtbot's Laptop](https://github.com/thoughtbot/laptop), and I hope this inspires you too!
 
