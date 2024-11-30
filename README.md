@@ -77,7 +77,7 @@ Laptop installs software and configures your Laptop. It also provides some usefu
 
 Laptop installs and configures the following software:
 
-* [1Password CLI](1Password CLI) for secret management from the commandline.
+* [1Password CLI] for secret management from the commandline.
 * [asdf](asdf) for managing programming language versions.
     * [Go](https://go.dev) via the [asdf-golang](asdf-golang) plugin.
     * [Node.js](Node.js) and npm via the [asdf-nodejs](asdf-nodejs) plugin.
@@ -92,7 +92,7 @@ Laptop installs and configures the following software:
 * [GnuPG](GnuPG) for encryption and signing.
 * [Homebrew](Homebrew) for managing operating system libraries.
 * [Visual Studio Code](Visual Studio Code) for a programming IDE.
-* [Zsh](Zsh) configures zsh with some opinions (see the [Zsh Manual](Zsh Manual)).
+* [Zsh](Zsh) configures zsh with some opinions (see the [Zsh Manual]).
 
 
 Laptop will configure your computer in a very opinionated way. Let's describe those opinions and how the script is configured to meet them.
