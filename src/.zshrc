@@ -27,6 +27,9 @@ eval "$(atuin init zsh)"
 # https://developer.1password.com/docs/cli/reference/commands/completion/
 eval "$(op completion zsh)"; compdef _op op
 
+# Use the 1Password SSH Agent Integration so you do not need to enter the SSH key passphrases.
+export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
+
 # Enable autocomplete for Flux CD CLI, 
 # https://fluxcd.io/flux/cmd/flux_completion_zsh/
 command -v flux >/dev/null && . <(flux completion zsh)
@@ -130,9 +133,19 @@ eval "$(pyenv init -)"
 ##### Load Custom Configuration
 ########################################
 
-# Sources any files in the ".laptop" directory that contain "zshrc_" in the filename.
+# Sources any files in the default Laptop directory (ie "~/.config/.laptop") that contain "zshrc_"
+# in the filename. For example, "~/.config/.laptop/.zshrc_methods".
+if [[ -d "$HOME/.config/laptop" ]]; then
+  for file in $HOME/.config/laptop/*(DN); do 
+    if [[ "$file" =~ "zshrc_" ]]; then
+      source $file; 
+    fi
+  done
+fi
+
+# Sources any files in the user's defined Laptop directory (ie "~/.laptop") that contain "zshrc_"
+# in the filename. For example, "~/.laptop/.zshrc_my_work_config".
 if [[ -d "$HOME/.laptop" ]]; then
-  # for file in $HOME/.laptop/**/*(.); do 
   for file in $HOME/.laptop/*(DN); do 
     if [[ "$file" =~ "zshrc_" ]]; then
       source $file; 

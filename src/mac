@@ -15,8 +15,13 @@ laptop_src_directory="$laptop_repo_directory/src"
 # Directory where local Laptop configurations are stored.
 laptop_local_directory="$HOME/.config/laptop"
 
+# Directory where a user's custom configurations and scripts that are specific to the current
+# computer. Items in this folder will not be modified by Laptop, but it will run and source 
+# files from this directory.
+laptop_custom_directory="$HOME/.laptop"
+
 # Directory where the user's custom install script is stored.
-laptop_custom_install_script="$laptop_local_directory/.laptop.local"
+laptop_custom_install_script="$laptop_custom_directory/custom_install.sh"
 
 # Base URL for the remote Laptop repository.
 remote_laptop_base_url="https://raw.githubusercontent.com/ssmereka/laptop/refs/heads/main"
@@ -26,7 +31,8 @@ remote_laptop_src_directory="$remote_laptop_base_url/src"
 
 # Prompt to inform the user that there are unsaved changes in the Laptop git repository.
 unsaved_changes_prompt='🚨 Attention: Cannot pull the latest changes from the remote Laptop
-              repository, because there are local changes.
+              repository, because there are local changes or you are not
+              on the "main" branch.
 
 Y:  Proceed without the latest changes from the remote Laptop repository.
 
@@ -39,10 +45,31 @@ N:  Stash the local changes, then pull the latest from the remote Laptop reposit
 
 # Global Secrets
 
-# The user's Git configuration details, including their email, name, and GitHub username.
+# The name of the 1Password "item" where the Git configurations exist, including email, name, and
+# username.
+item_name_git="GitHub"
+# Name of the 1Password "field" in the item "item_name_git" that contains the email address that
+# should be used by the Git client.
+field_name_git_email="email"
+# Name of the 1Password "field" in the item "item_name_git" that contains the name that
+# should be used by the Git client.
+field_name_git_name="name"
+# Name of the 1Password "field" in the item "item_name_git" that contains the git username that
+# should be used by the Git client.
+field_name_git_username="username"
+
+# The name of the 1Password "item" where the Git SSH Key configurations exist. This key should be
+# added to your remote Git repository, eg. GitHub.
+item_name_ssh_key="GitHub SSH Key"
+# Name of the 1Password "field" in the item "item_name_ssh_key" that contains the public ssh key
+# used by your remote Git repository, eg. GitHub.
+field_name_ssh_key_public="public key"
+
+# Variables to store the secrets obtained from 1Password and injected into configurations.
 git_email=""
 git_name=""
-github_username=""
+git_ssh_public_key=""
+git_username=""
 
 
 # Lifecycle Methods
@@ -97,7 +124,8 @@ clear_secrets() {
     log_header "🔐 Clearing Secrets from Memory"
     unset git_email
     unset git_name
-    unset github_username
+    unset git_ssh_public_key
+    unset git_username
 }
 
 # Clone the Laptop repository locally, if it doesn't exist locally
@@ -182,18 +210,32 @@ configure_git() {
 
     log_header "🔧 Configuring Git"
 
-    # Create a local Git configuration file from the Laptop template, if one doesn't exist.
-    local_gitconfig="$laptop_local_directory/.gitconfig"
-    copy_file "$laptop_src_location/.gitconfig" "$local_gitconfig" false
-
-    if [[ -z "$git_email" || -z "$git_name" || -z "$github_username" ]]; then
+    if [[ -z "$git_email" || -z "$git_name" || -z "$git_username" || -z "$git_ssh_public_key" ]]; then
         get_secrets
     fi
 
-    # Replace the templates variables using the information from 1Password
+    # Create a local Git allowed signers file from the Laptop template.
+    local_git_allowed_signers="$laptop_local_directory/.git-allowed-signers"
+    copy_file "$laptop_src_location/.git-allowed-signers" "$local_git_allowed_signers"
+    chmod 600 "$local_git_allowed_signers"
+
+    # Create a local Git configuration file from the Laptop template.
+    local_gitconfig="$laptop_local_directory/.gitconfig"
+    copy_file "$laptop_src_location/.gitconfig" "$local_gitconfig"
+
+    # Replace the allowed signers template variables using the information from 1Password.
+    sed -i '' "s|GIT_NAME|${git_name}|" "$local_git_allowed_signers"
+    sed -i '' "s|GIT_SSH_PUBLIC_KEY|${git_ssh_public_key}|" "$local_git_allowed_signers"
+
+    # Replace the gitconfig template variables using the information from 1Password.
     sed -i '' "s|GIT_EMAIL|${git_email}|" "$local_gitconfig"
     sed -i '' "s|GIT_NAME|${git_name}|" "$local_gitconfig"
-    sed -i '' "s|GITHUB_USERNAME|${github_username}|" "$local_gitconfig"
+    sed -i '' "s|GIT_SSH_PUBLIC_KEY|${git_ssh_public_key}|" "$local_gitconfig"
+    sed -i '' "s|GIT_USERNAME|${git_username}|" "$local_gitconfig"
+
+    # Replace the gitconfig template allowed signers path variable with the location of the newly
+    # configured allowed signers file.
+    sed -i '' "s|PATH_TO_GIT_ALLOWED_SIGNERS|${local_git_allowed_signers}|" "$local_gitconfig"
 
     clear_secrets
 
@@ -215,9 +257,9 @@ configure_ssh() {
     mkdir -p "$HOME/.ssh/"
     chmod 700 "$HOME/.ssh"
 
-    # Create a local .ssh_config configuration file from the Laptop template, if one doesn't exist.
+    # Create a local .ssh_config configuration file from the Laptop template.
     local_ssh_config_path="$laptop_local_directory/.ssh_config"
-    copy_file "$laptop_src_location/.ssh_config" "$local_ssh_config_path" false
+    copy_file "$laptop_src_location/.ssh_config" "$local_ssh_config_path"
     
     # Grant the owner read/write permissions to the local SSH configuration file.
     # This is the required permission level for SSH to use the file.
@@ -226,13 +268,18 @@ configure_ssh() {
     # Symbolicially link the local ssh config to the default location.
     link_file "$local_ssh_config_path" "$HOME/.ssh/config"
     
-    # Create a local 1Password agent configuration file from the Laptop template, if one doesn't exist.
+    # Create a local 1Password agent configuration file from the Laptop template.
     local_onepassword_agent_path="$laptop_local_directory/agent.toml"
-    copy_file "$laptop_src_location/agent.toml" "$local_onepassword_agent_path" false
+    copy_file "$laptop_src_location/agent.toml" "$local_onepassword_agent_path"
     
     # Symbolicially link the local 1Password agent configuration to the default location.
     mkdir -p "$HOME/.config/1Password/ssh/"
     link_file "$local_onepassword_agent_path" "$HOME/.config/1Password/ssh/agent.toml"
+
+    # Follow 1Password's recommendation to create a shortcut to the 1Password SSH Agent 
+    # Integration, ie "~/.1password/agent.sock".
+    mkdir -p "$HOME/.1password"
+    link_file "$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock" "$HOME/.1password/agent.sock"
 }
 
 # Configure ZSH to use the Laptop configuration files.
@@ -244,16 +291,16 @@ configure_zsh() {
 
     log_header "🔧 Configuring ZSH"
 
-    # Create a local ZSH configuration file, overwriting it if it already exists.
-    copy_file "$laptop_src_location/.zshrc" "$laptop_local_directory/.zshrc" true
+    # Create a local ZSH configuration file.
+    copy_file "$laptop_src_location/.zshrc" "$laptop_local_directory/.zshrc"
     link_file "$laptop_local_directory/.zshrc" "$ZDOTDIR/.zshrc"
 
-    # Create custom local ZSH configuration files, overwriting it if it already exists.
-    copy_file "$laptop_src_location/.zshrc_aliases" "$laptop_local_directory/.zshrc_aliases" true
-    copy_file "$laptop_src_location/.zshrc_methods" "$laptop_local_directory/.zshrc_methods" true
+    # Create custom local ZSH configuration files.
+    copy_file "$laptop_src_location/.zshrc_aliases" "$laptop_local_directory/.zshrc_aliases"
+    copy_file "$laptop_src_location/.zshrc_methods" "$laptop_local_directory/.zshrc_methods"
 
-    # Create a Atuin configuration file, without overwriting the file in laptop_local_directory.
-    copy_file "$laptop_src_location/atuin_config.toml" "$laptop_local_directory/atuin_config.toml" false
+    # Create a Atuin configuration file.
+    copy_file "$laptop_src_location/atuin_config.toml" "$laptop_local_directory/atuin_config.toml"
     link_file "$laptop_local_directory/atuin_config.toml" "$HOME/.config/atuin/config.toml"
 }
 
@@ -284,6 +331,12 @@ copy_file() {
     fi
 }
 
+clear_laptop_configs() {
+    log "Removing local Laptop configurations. Any changes made after the Laptop install will be" \
+        "removed."
+    rm -rf "$laptop_local_directory"
+}
+
 # Get secrets from 1Password and store them in global variables. This is a seperate method to
 # so secrets can be gathered at the start of the script to prevent user interactions in the 
 # middle of a lengthy script.
@@ -300,14 +353,25 @@ get_secrets() {
     log "Unlocking the 1Password CLI."
     $(op signin)
     
-    log "Retrieving fields \"email\", \"name\", and \"username\" from 1Password item \"GitHub\"."
-    git_email=$(op item get GitHub --fields email)
-    git_name=$(op item get GitHub --fields name)
-    github_username=$(op item get GitHub --fields username)
+    log "Retrieving fields \"$field_name_git_email\", \"$field_name_git_name\", and " \
+        "\"$field_name_git_username\" from 1Password item \"$item_name_git\"."
+    
+    git_email=$(op item get "$item_name_git" --fields "$field_name_git_email")
+    git_name=$(op item get "$item_name_git" --fields "$field_name_git_name")
+    git_username=$(op item get "$item_name_git" --fields "$field_name_git_username")
 
-    if [[ -z "$git_email" || -z "$git_name" || -z "$github_username" ]]; then
+    if [[ -z "$git_email" || -z "$git_name" || -z "$git_username" ]]; then
         exit_with_error "Failed to lookup secret fields \"email\", \"name\", and \"username\"" \
                         "from item \"GitHub\" in 1Password. Make sure they exist."
+    fi
+
+    log "Retrieving field \"$field_name_ssh_key_public\" from 1Password item \"$item_name_ssh_key\"."
+    
+    git_ssh_public_key=$(op item get "$item_name_ssh_key" --fields "$field_name_ssh_key_public")
+
+    if [[ -z "$git_ssh_public_key" ]]; then
+        exit_with_error "Failed to lookup secret fields \"public keyl\" from item" \
+                        "\"GitHub\" in 1Password. Make sure it exists."
     fi
 }
 
@@ -327,11 +391,11 @@ install_apps() {
     log_header "🔧 Installing Homebrew Applications"
 
     brew bundle --file=- <<EOF
-    brew 'gh'
-    brew 'asdf' # Requires coreutils, curl, and gawk
-    brew 'coreutils'
-    brew 'curl'
-    brew 'gawk'
+    brew 'gh' # https://cli.github.com
+    brew 'asdf' # Requires coreutils, curl, and gawk, https://asdf-vm.com
+    brew 'coreutils' # https://formulae.brew.sh/formula/coreutils
+    brew 'curl' # https://curl.se
+    brew 'gawk' # https://www.gnu.org/software/gawk/
     brew 'gnupg' # https://www.gnupg.org
     brew 'atuin' # https://atuin.sh
 EOF
@@ -361,7 +425,7 @@ install_custom() {
         chmod +x "$laptop_custom_install_script"
         "$laptop_custom_install_script"
     else
-        log "No customizations found at $laptop_custom_install_script"
+        log "No customizations found at $laptop_custom_install_script".
     fi
 }
 
@@ -414,12 +478,11 @@ update_laptop_repository() {
 
     # If there are changes in the local repository, ask the user if 
     # they want to stash and pull the latest changes.
-    if [[ `git status --porcelain` ]]; then
+    if [[ `git status --porcelain` || $(git rev-parse --abbrev-ref HEAD) != "main" ]]; then
         log "$unsaved_changes_prompt"
         read "response?Continue without pulling the latest changes? [Y/n]? "
 
         if [[ -z $response || $response =~ ^[Yy] ]]; then
-        # if [[ "$REPLY" =~ ^[Nn]$ ]]; then
             log "\nSkipped pulling the latest changes from the remote Laptop repository."
             return
         else
@@ -440,6 +503,8 @@ update_laptop_repository() {
 # Command Methods
 
 install() {
+    force_flag="$1"
+
     log_title "💻 Configuring your Laptop"
 
     # By default, use the remote Laptop repository source files when configuring the computer.
@@ -454,6 +519,12 @@ install() {
 
         # Update the script's source code before continuing
         update_laptop_repository
+    fi
+
+    if [[ $force_flag == true ]]; then
+        # Delete all local configurations so that they will be recreated with the default values.
+        # Effectively removing any local changes made after the script was initially run.
+        clear_laptop_configs
     fi
 
     install_apple_developer_tools
@@ -509,18 +580,26 @@ uninstall() {
 main() {
     install_flag=false
     uninstall_flag=false
+    force_flag=false
 
-    # Check for available commands
-    for arg in "$@"; do
-        if [[ "$arg" == "uninstall" ]]; then
-            uninstall_flag=true
-            break
-        fi
+    additional_args=()
 
-        if [[ "$arg" == "install" ]]; then
-            install_flag=true
-            break
-        fi
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -f|--force)
+                force_flag=true
+                ;;
+            install)
+                install_flag=true
+                ;;
+            uninstall)
+                uninstall_flag=true
+                ;;
+            *)
+                additional_args+=("$1")
+                ;;
+        esac
+        shift
     done
 
     # Run the appropriate command(s)
@@ -529,11 +608,11 @@ main() {
         uninstall
     
     elif [[ $install_flag == true ]]; then
-        install
+        install $force_flag
     
     # By default, run the install command.
     else    
-        install
+        install $force_flag
     fi
 }
 
