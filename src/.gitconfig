@@ -12,6 +12,7 @@
 [color]
     ui = auto
 [commit]
+    # Automatically sign all commits so you don't have to specify -S
     gpgsign = true
 [core]
     editor = code --wait
@@ -24,8 +25,10 @@
 [github]
     user = GIT_USERNAME
 [gpg]
-  format = ssh
+    # Use the SSH key instead of a GPG for signing.
+    format = ssh
 [gpg "ssh"]
+    # Use the 1Password's binary for signing, so you don't have to set SSH_AUTH_SOCK.
     program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
 [help]
     autocorrect = 1
