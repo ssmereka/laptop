@@ -124,9 +124,12 @@ Secrets belong in a password manager or secret storage **and** you should author
 
 ## Customize Laptop
 
-If provided, your local file `~/.laptop.local` is run at the end of the Laptop script. Put your customizations there for your specific machine.
+You can customize Laptop for each computer by placing files in the `~/.laptop` directory. If provided, the following files will be used:
 
-For example:
+* `.custom_install.sh` - Script that will be run at the end of the Laptop `install`.
+
+
+Here's a `.custom_install.sh` example:
 
 ```zsh
 #!/bin/zsh
