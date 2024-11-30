@@ -26,7 +26,8 @@ remote_laptop_src_directory="$remote_laptop_base_url/src"
 
 # Prompt to inform the user that there are unsaved changes in the Laptop git repository.
 unsaved_changes_prompt='🚨 Attention: Cannot pull the latest changes from the remote Laptop
-              repository, because there are local changes or you are not on the "main" branch.
+              repository, because there are local changes or you are not
+              on the "main" branch.
 
 Y:  Proceed without the latest changes from the remote Laptop repository.
 
@@ -472,7 +473,6 @@ update_laptop_repository() {
         read "response?Continue without pulling the latest changes? [Y/n]? "
 
         if [[ -z $response || $response =~ ^[Yy] ]]; then
-        # if [[ "$REPLY" =~ ^[Nn]$ ]]; then
             log "\nSkipped pulling the latest changes from the remote Laptop repository."
             return
         else
