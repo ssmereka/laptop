@@ -13,32 +13,29 @@ It supports macOS on Apple Silicon and Intel processors.
 
 A few secrets are required to get setup. Laptop is configured to retreive these secrets from [1Password](1Password). So you're going to need 1Password for this to work out of the box.
 
-1. Download, install, and login to the [1Password MacOS application](1Password MacOS application).
+1. Download, install, and login to the [1Password MacOS application].
 
 2. Create a [GitHub Personal Access Token].
 
-2. Unlock 1Password and add a `Login` item called `GitHub` with the following `fields`:
+2. Unlock 1Password and add a `Login` item called `GitHub` with at least the following `fields`:
 
     | Type | Label | Example Value | Description |
     | -----| ----- | ------------- | ----------- |
     | text | `name` | John Smith | Full name to be used in Git configuration |
     | text | `email` | john@smith.com | Personal email address to be used in Git configuration |
-    | text | `token` | github_pat_asdfjkl | GitHub Personal Access Token to be used with GitHub CLI |
+    | password | `token` | github_pat_asdfjkl | GitHub Personal Access Token to be used with GitHub CLI |
     | text | `username` | jsmith | GitHub username |
 
-3. Generate and save a new [SSH Key to 1Password] with the name `GitHub SSH Key`.
+3. Generate and save a new [SSH Key in 1Password] with the name `GitHub SSH Key`.
 
 4. Create a [Authentication SSH Key in GitHub] with the public portion of the SSH Key you just added to 1Password.
 
 5. Create a [Signing SSH Key in GitHub] with the public portion of the SSH Key you just added to 1Password.
 
-6. Enable [1Password App Integration] so you can use the 1Password CLI.
+6. Enable [1Password App Integration] so you can use the 1Password CLI. Check at least the following:
 
-    Recommend the following 1Password Developer settings:
-
-    ![1password_developer_settings_1](https://github.com/user-attachments/assets/8611fc21-c91a-486a-8c49-d584d13cd2e8)
-    ![1password_developer_settings_2](https://github.com/user-attachments/assets/9c693078-5e7a-4429-ad69-d458a19d504e)
-
+    * ✅ Use the SSH Agent
+    * ✅ Integrate with 1Password CLI
 
 ### Install Laptop
 
@@ -52,20 +49,6 @@ A few secrets are required to get setup. Laptop is configured to retreive these 
 
 This will clone the git project to `~/code/laptop` and setup your computer!
 
-### Update Laptop
-
-To update or fix any issues with Laptop just re-run the [mac] script again. You can use the alias:
-
-
-```bash
-lt-update
-```
-
-OR
-
-```bash
-curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh
-```
 
 ### Using Laptop
 
@@ -73,7 +56,21 @@ Laptop installs software and configures your Laptop. It also provides some usefu
 
 ![laptop-help](https://github.com/user-attachments/assets/0552bd40-ceff-41d1-b8fa-94d39c908792)
 
-## What does Laptop setup?
+### Update Laptop
+
+Want the latest updates? Just re-run the [mac] script again:
+
+```bash
+curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh
+```
+
+Optionally, use the Laptop alias:
+
+```bash
+lt-update
+```
+
+## What does Laptop do?
 
 Laptop installs and configures the following software:
 
@@ -169,7 +166,7 @@ Write your customizations such that they can be run safely more than once.
 [Python]: https://www.python.org
 [Ruby]: https://www.ruby-lang.org/en/
 [Signing SSH Key in GitHub]: https://developer.1password.com/docs/ssh/git-commit-signing
-[SSH Key to 1Password]: https://developer.1password.com/docs/ssh/get-started#step-1-generate-an-ssh-key
+[SSH Key in 1Password]: https://developer.1password.com/docs/ssh/get-started#step-1-generate-an-ssh-key
 [Visual Studio Code]: https://code.visualstudio.com
 [Zsh]: http://www.zsh.org/
 [Zsh Manual]: https://zsh.sourceforge.io/Doc/Release/The-Z-Shell-Manual.html#The-Z-Shell-Manual
