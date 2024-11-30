@@ -27,6 +27,9 @@ eval "$(atuin init zsh)"
 # https://developer.1password.com/docs/cli/reference/commands/completion/
 eval "$(op completion zsh)"; compdef _op op
 
+# Use the 1Password SSH Agent Integration so you do not need to enter the SSH key passphrases.
+export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
+
 # Enable autocomplete for Flux CD CLI, 
 # https://fluxcd.io/flux/cmd/flux_completion_zsh/
 command -v flux >/dev/null && . <(flux completion zsh)
