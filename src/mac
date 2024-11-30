@@ -218,6 +218,7 @@ configure_git() {
     copy_file "$laptop_src_location/.gitconfig" "$local_gitconfig"
 
     # Replace the allowed signers template variables using the information from 1Password.
+    sed -i '' "s|GIT_NAME|${git_name}|" "$local_git_allowed_signers"
     sed -i '' "s|GIT_SSH_PUBLIC_KEY|${git_ssh_public_key}|" "$local_git_allowed_signers"
 
     # Replace the gitconfig template variables using the information from 1Password.

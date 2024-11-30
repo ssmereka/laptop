@@ -10,42 +10,74 @@
     puom = pull origin master
     s = status
 [color]
+    # Automatically enable color in Git output for better readability.
     ui = auto
+
 [commit]
-    # Automatically sign all commits so you don't have to specify -S
+    # Automatically sign all commits so you don't have to specify -S.
     gpgsign = true
+
 [core]
     # Runs VS Code and ensures Git waits for the editor to close before continuing with the operation.
     editor = code --wait
+
 [credential]
+    # Use the macOS Keychain to securely store and retrieve Git credentials.
     helper = osxkeychain
+
 [diff]
-    #
+    # Configure Git to use VS Code for diffs, e.g. when you run "git difftool".
     tool = vscode
+
 [difftool "vscode"]
+    # Configures the command run when using a Git diff. This passes the files being
+    # compared and waits for the file to close before proceeding.
     cmd = code --wait --diff $LOCAL $REMOTE
+
 [github]
+    # Specifies your GitHub username for use in certain GitHub-related operations.
     user = GIT_USERNAME
+
 [gpg]
-    # Use the SSH key instead of a GPG for signing.
+    # Use the SSH key instead of a GPG key for signing commits.
     format = ssh
+
 [gpg "ssh"]
-	allowedSignersFile = PATH_TO_GIT_ALLOWED_SIGNERS
-    # Use the 1Password's binary for signing, so you don't have to set SSH_AUTH_SOCK.
+    # Allowed signers file contains a list of trusted public SSH keys and their associated signers.
+    # You can test this by making a commit and then running "git log --show-signature".
+    allowedSignersFile = PATH_TO_GIT_ALLOWED_SIGNERS
+    # Use 1Password's binary for signing, so you don't have to set SSH_AUTH_SOCK manually.
     program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
+
 [help]
+    # Enable autocorrect for mistyped Git commands. For example, "git staus" will auto-correct to
+    # "git status."
     autocorrect = 1
+
 [merge]
+    # Use VS Code as the default merge tool for resolving conflicts.
     tool = vscode
+
 [mergetool "vscode"]
+    # Configure the merge tool command to open conflicts in VS Code and wait for the user to
+    # resolve them.
     cmd = code --wait $MERGED
+
 [pull]
+    # Use rebase by default when pulling changes from a remote branch, avoiding merge commits.
     rebase = true
+
 [push]
+    # Only push the current branch to the corresponding branch on the remote repository.
     default = simple
+
 [user]
+    # Specifies your name and email address for use in Git commits.
     name = GIT_NAME
     email = GIT_EMAIL
+    # Specifies the SSH public key to be used for signing commits.
     signingkey = GIT_SSH_PUBLIC_KEY
+
 [tag]
+    # Automatically sign all annotated tags.
     gpgSign = true
