@@ -201,6 +201,30 @@ configure_asdf() {
     log "\nUsing Go version $go_version"
 }
 
+# Configure the 1Password GitHub CLI plugin so that it uses the Personal Access Token from
+# 1Password for authentication.
+configure_gh() {
+    log_header "Configuring GitHub CLI"
+
+    if [[ ! -f "$HOME/.config/op/plugins/gh.json" ]]; then
+        log "Signing into 1Password to retrieve the GitHub Personal Access Token"
+        op signin
+        
+        log "\n🚨 Initializing the 1Password GitHub Plugin. Follow these steps:\n\n" \
+            "  1. When asked to locate your token, navigate to the name of the 1Password item where your Personal Access Token was stored.\n" \
+            "  2. When asked to configure when the chosen credentials will be used, select \"Use as global default on my system.\"\n\n" \
+            "More info can be found here:\n" \
+            "https://developer.1password.com/docs/cli/shell-plugins/github/#step-2-configure-your-default-credentials\n\n" \
+            "> Press any key to continue..."
+        read -n 1
+        
+        op plugin init gh
+    fi
+
+    log "Verifying 1Password GitHub plugin"
+    op plugin inspect gh
+}
+
 # Create a Git configuration file with the user's GitHub information from 1Password.
 # Parameters:
 #   laptop_src_location: A local directory path or a remote URL for the Laptop source code
@@ -332,6 +356,9 @@ copy_file() {
 }
 
 clear_laptop_configs() {
+    log "Removing 1Password GitHub CLI configurations."
+    op plugin clear gh
+
     log "Removing local Laptop configurations. Any changes made after the Laptop install will be" \
         "removed."
     rm -rf "$laptop_local_directory"
@@ -535,6 +562,8 @@ install() {
     configure_git "$laptop_src_location"
     configure_zsh "$laptop_src_location"
     configure_asdf "$laptop_src_location"
+
+    configure_gh
 
     install_custom
 
