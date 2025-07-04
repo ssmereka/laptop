@@ -141,65 +141,6 @@ clone_laptop_repository() {
     fi
 }
 
-# Configure ASDF to manage Node.js and Ruby runtime versions.
-# Parameters:
-#   laptop_src_location: A local directory path or a remote URL for the Laptop source code
-#                        directory. Defaults to the "laptop_src_directory" variable.
-configure_asdf() {
-    laptop_src_location=${1:-"$laptop_src_directory"}
-
-    log_header "🔧 Configuring ASDF"
-
-    # Create a local ASDF configuration file, if one doesn't exist
-    # https://asdf-vm.com/manage/configuration.html#asdf-config-file
-    copy_file "$laptop_src_location/.asdfrc" "$laptop_local_directory/.asdfrc"
-    link_file "$laptop_local_directory/.asdfrc" "$HOME/.asdfrc"
-
-    # Create a local .default-gems file, if one doesn't exist.
-    # After Ruby is installed, the gems specified in this file will be installed.
-    # https://github.com/asdf-vm/asdf-ruby?tab=readme-ov-file#default-gems
-    copy_file "$laptop_src_location/.default-gems" "$laptop_local_directory/.default-gems"
-    link_file "$laptop_local_directory/.default-gems" "$HOME/.default-gems"
-
-    # Source the ASDF version manager
-    . $(brew --prefix asdf)/libexec/asdf.sh
-
-    # Install the lastest version of Node.js using ASDF
-    # https://github.com/asdf-vm/asdf-nodejs
-    log_header "🔧 Installing Node.js with ASDF"
-    asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
-    asdf install nodejs latest
-    asdf global nodejs latest
-    log "\nUsing Node.js version $(node --version)"
-
-    # Install the lastest version of Python using ASDF
-    # https://github.com/asdf-community/asdf-python
-    log_header "🔧 Installing Python with ASDF"
-    asdf plugin-add python
-    asdf install python latest
-    asdf global python latest
-    log "\nUsing Python version $(python --version)"
-
-    # Install the latest version of Ruby using ASDF
-    # https://github.com/asdf-vm/asdf-ruby
-    log_header "🔧 Installing Ruby with ASDF"
-    asdf plugin add ruby https://github.com/asdf-vm/asdf-ruby.git
-    asdf install ruby latest
-    asdf global ruby latest
-    log "\nUsing Ruby version $(ruby --version)"
-
-    # Install the latest version of Go using ASDF
-    # https://github.com/asdf-community/asdf-golang?tab=readme-ov-file#asdf-golang
-    log_header "🔧 Installing Go"
-    asdf plugin add golang https://github.com/asdf-community/asdf-golang.git
-    # Manually set this env varible to the non default value of "false". This will force go to use
-    # the exact versoins in .tool-versions and/or .go-version files. See
-    # https://github.com/asdf-community/asdf-golang?tab=readme-ov-file#version-selection
-    export ASDF_GOLANG_MOD_VERSION_ENABLED=false && asdf install golang latest
-    export ASDF_GOLANG_MOD_VERSION_ENABLED=false && asdf global golang latest
-    go_version=$(go version)
-    log "\nUsing Go version $go_version"
-}
 
 # Configure the 1Password GitHub CLI plugin so that it uses the Personal Access Token from
 # 1Password for authentication.
@@ -419,12 +360,13 @@ install_apps() {
 
     brew bundle --file=- <<EOF
     brew 'gh' # https://cli.github.com
-    brew 'asdf' # Requires coreutils, curl, and gawk, https://asdf-vm.com
     brew 'coreutils' # https://formulae.brew.sh/formula/coreutils
     brew 'curl' # https://curl.se
     brew 'gawk' # https://www.gnu.org/software/gawk/
     brew 'gnupg' # https://www.gnupg.org
     brew 'atuin' # https://atuin.sh
+    brew 'awscli' # https://docs.aws.amazon.com/cli/
+    brew 'postgresql' # https://www.postgresql.org
 EOF
 
     log_header "🔧 Installing Applications"
@@ -442,6 +384,9 @@ EOF
     else
         log "1Password CLI is already installed."
     fi
+
+    install_or_update_nvm
+
 }
 
 # Run the custom installation script if it exists on the local machine.
@@ -470,6 +415,31 @@ install_or_update_homebrew() {
     else
         log_header "🍺 Updating Homebrew"
         brew update --force # https://github.com/Homebrew/brew/issues/1151
+    fi
+}
+
+# Installs NVM using the official install script from the NVM repository.
+# If NVM is already installed, it will update NVM to the latest version.
+# Verifies that NVM is installed and working by checking the version.
+install_or_update_nvm() {
+    echo "\n🔧 Installing or updating Node Version Manager (NVM).\n"
+
+    # The PROFILE=/dev/null will prevent the setup script from updating
+    # the bash profile(s), as this is already configured by the Laptop script.
+    PROFILE=/dev/null bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash'
+
+    # Load nvm for the current shell, if it is not already loaded.
+    local nvm_dir="${NVM_DIR:-${XDG_CONFIG_HOME:-$HOME/.nvm}}"
+    export NVM_DIR="$nvm_dir"
+    if [ -s "$NVM_DIR/nvm.sh" ]; then
+        . "$NVM_DIR/nvm.sh"
+    fi
+
+    # Verify that nvm is installed and working.
+    if command -v nvm >/dev/null 2>&1; then
+        echo "\n✅ Node Version Manager (NVM) version $(nvm --version) is installed.\n"
+    else
+        echo "\n❌ Node Version Manager (NVM) installation failed.\n" >&2
     fi
 }
 
@@ -561,7 +531,6 @@ install() {
     configure_ssh "$laptop_src_location"
     configure_git "$laptop_src_location"
     configure_zsh "$laptop_src_location"
-    configure_asdf "$laptop_src_location"
 
     configure_gh
 
@@ -580,12 +549,11 @@ uninstall() {
 
     log_header "🔨 Uninstalling Applications"
 
-    if brew list asdf &>/dev/null; then
-        brew uninstall asdf
-    fi
     if brew list atuin &>/dev/null; then
         brew uninstall atuin # https://atuin.sh
     fi
+
+    uninstall_nvm
 
     # TODO: Ask if you want to uninstall these
     # brew uninstall gh
@@ -603,6 +571,16 @@ uninstall() {
     rm -rf "$HOME/.config/atuin"
 
     log "\n🎉 Done. Restart your shell to complete the uninstall."
+}
+
+# Removes NVM if it is installed.
+uninstall_nvm() {
+    local nvm_dir="${NVM_DIR:-${XDG_CONFIG_HOME:-$HOME/.nvm}}"
+    if [ -d "$nvm_dir" ]; then
+        echo "\n💥 Uninstalling Node Version Manager (NVM).\n"
+        command -v nvm >/dev/null && nvm unload
+        rm -rf "$nvm_dir"
+    fi
 }
 
 # Interprit commandline arguments and run the appropriate methods.

@@ -93,29 +93,12 @@ setopt SHARE_HISTORY
 ##### Version Managers
 ########################################
 
-# ASDF Version Manager
-# https://asdf-vm.com
-. $(brew --prefix asdf)/libexec/asdf.sh
-
-# Python Version Manager
-# https://github.com/pyenv/pyenv
-# ASDF python plugin uses pyenv under the hood. These are the configurations for that package manager.
-alias brew='env PATH="${PATH//$(pyenv root)\/shims:/}" brew'
-export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
-
-# ASDF is currently configured to manage node, go, python, and ruby. However these plugins can
-# sometimes not be as reliable as the individual version managers. Settings are included for the
-# standard package managers should you need to use them instead of ASDF.
-
 # Node Version Manager (NVM)
 # https://github.com/nvm-sh/nvm
-# # Add NVM to the user's PATH.
-# export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-# # Add NVM autocompletion
-# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-
+# Add NVM to the user's PATH.
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+# Add NVM autocompletion
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
 # Ruby Version Manager (RVM)
 # https://rvm.io
