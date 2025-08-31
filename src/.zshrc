@@ -40,6 +40,14 @@ fi
 # https://fluxcd.io/flux/cmd/flux_completion_zsh/
 command -v flux >/dev/null && . <(flux completion zsh)
 
+# MacOS comes with a fork of OpenSSL that lacks the headers and libraries required for 
+# compiling some software, such as Ruby on Rails. We installed a full version using
+# Homebrew. These export commands expose the OpenSSL libraries, headers, and tools
+# so they are available at build time and prevents "openssl not found" errors.
+export LDFLAGS="-L$(brew --prefix openssl@3)/lib $LDFLAGS"
+export CPPFLAGS="-I$(brew --prefix openssl@3)/include $CPPFLAGS"
+export PKG_CONFIG_PATH="$(brew --prefix openssl@3)/lib/pkgconfig:$PKG_CONFIG_PATH"
+
 
 ########################################
 ##### ZSH Parameters and Options
@@ -92,6 +100,16 @@ setopt SHARE_HISTORY
 ########################################
 ##### Version Managers
 ########################################
+
+# Mise
+# https://mise.jdx.dev
+# Add the Mise tool to the user's PATH.
+eval "$(mise activate zsh)"
+
+# Rust & Cargo
+# https://rustup.rs
+# Add Rust Cargo to the user's Path
+export PATH="$HOME/.cargo/bin:$PATH"
 
 # Node Version Manager (NVM)
 # https://github.com/nvm-sh/nvm

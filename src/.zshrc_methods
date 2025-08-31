@@ -36,6 +36,7 @@ lt-help() {
   \t🐵  code  \t https://code.visualstudio.com
   \t🐱  gh    \t https://cli.github.com/
   \t🌳  git   \t https://git-scm.com
+  \t🐁  mise  \t https://mise.jdx.dev
   \t📦  nvm   \t https://github.com/nvm-sh/nvm
   \t🔐  op    \t https://developer.1password.com/docs/cli
   \t🐍  pyenv \t https://github.com/pyenv/pyenv

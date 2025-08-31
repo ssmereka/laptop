@@ -1,0 +1,16 @@
+# Global Mise Configuration
+# Defines global tools that will be available everywhere via mise. This
+# file is placed in it's default location "~/.config/mise/config.toml".
+
+# To change the global value update this file in it's default location, 
+# or mise can do this for you with command "mise use -g rust@1.80.1".
+
+# Override the default tools in a project by creating a local mise file
+# called ".mise.toml" with the desired versions. Mise can do this for 
+# you with the use command, such as "mise use rust@1.80.1".
+
+# Override the default tools temporarily in a command line shell with
+# the mise shell command, such as "mise shell rust@1.80.1".
+
+[tools]
+rust = "stable"

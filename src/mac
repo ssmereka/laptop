@@ -145,7 +145,7 @@ clone_laptop_repository() {
 # Configure the 1Password GitHub CLI plugin so that it uses the Personal Access Token from
 # 1Password for authentication.
 configure_gh() {
-    log_header "Configuring GitHub CLI"
+    log_header "😸 Configuring GitHub CLI"
 
     if [[ ! -f "$HOME/.config/op/plugins/gh.json" ]]; then
         log "Signing into 1Password to retrieve the GitHub Personal Access Token"
@@ -206,6 +206,23 @@ configure_git() {
 
     # Symbolically link the .gitconfig to the proper location.
     link_file "$local_gitconfig" "$HOME/.gitconfig"  
+}
+
+# Configure Mise to use the Laptop configuration files.
+# Parameters:
+#   laptop_src_location: A local directory path or a remote URL for the Laptop source code
+#                        directory. Defaults to the "laptop_src_directory" variable.
+configure_mise() {
+    laptop_src_location=${1:-"$laptop_src_directory"}
+
+    log_header "🔧 Configuring Mise"
+
+    # Create a local Mise configuration file.
+    copy_file "$laptop_src_location/.mise_config.toml" "$laptop_local_directory/.mise_config.toml"
+    link_file "$laptop_local_directory/.mise_config.toml" "$HOME/.config/mise/config.toml"
+
+    # Trust the local configuration file to prevent prompts in the automated install.
+    mise trust "$HOME/.config/mise/config.toml" || true
 }
 
 # Configure SSH to use the SSH keys in 1Password.
@@ -321,7 +338,7 @@ get_secrets() {
     log "Unlocking the 1Password CLI."
     $(op signin)
     
-    log "Retrieving fields \"$field_name_git_email\", \"$field_name_git_name\", and " \
+    log "Retrieving fields \"$field_name_git_email\", \"$field_name_git_name\", and" \
         "\"$field_name_git_username\" from 1Password item \"$item_name_git\"."
     
     git_email=$(op item get "$item_name_git" --fields "$field_name_git_email")
@@ -359,15 +376,26 @@ install_apps() {
     log_header "🔧 Installing Homebrew Applications"
 
     brew bundle --file=- <<EOF
-    brew 'gh' # https://cli.github.com
-    brew 'coreutils' # https://formulae.brew.sh/formula/coreutils
-    brew 'curl' # https://curl.se
-    brew 'gawk' # https://www.gnu.org/software/gawk/
-    brew 'gnupg' # https://www.gnupg.org
     brew 'atuin' # https://atuin.sh
     brew 'awscli' # https://docs.aws.amazon.com/cli/
+    brew 'curl' # https://curl.se
+    brew 'coreutils' # https://formulae.brew.sh/formula/coreutils
+    brew 'gawk' # https://www.gnu.org/software/gawk/
+    brew 'gh' # https://cli.github.com
+    brew 'gmp' # https://gmplib.org/
+    brew 'gnupg' # https://www.gnupg.org
+    brew 'libyaml' # https://pyyaml.org/wiki/LibYAML
+    brew 'mise' # https://mise.jdx.dev
+    brew 'openssl@3' # https://www.openssl.org/
     brew 'postgresql' # https://www.postgresql.org
+    brew 'rustup-init' # https://rustup.rs
 EOF
+
+    # Initialize rustup with the default stable Rust toolchain non-interactively, if
+    # it's not already installed and configured.
+    if ! command -v rustup >/dev/null 2>&1; then
+        rustup-init -y
+    fi
 
     log_header "🔧 Installing Applications"
 
@@ -385,13 +413,14 @@ EOF
         log "1Password CLI is already installed."
     fi
 
+    install_mise_tools
     install_or_update_nvm
 
 }
 
 # Run the custom installation script if it exists on the local machine.
 install_custom() {
-    log_header "🪄 Running Customizations"
+    log_header "🪄  Running Customizations"
     if [[ -f "$laptop_custom_install_script" ]]; then
         log "Running local customization script at $laptop_custom_install_script"
         chmod +x "$laptop_custom_install_script"
@@ -422,7 +451,7 @@ install_or_update_homebrew() {
 # If NVM is already installed, it will update NVM to the latest version.
 # Verifies that NVM is installed and working by checking the version.
 install_or_update_nvm() {
-    echo "\n🔧 Installing or updating Node Version Manager (NVM).\n"
+    log_header "🔧 Installing or updating Node Version Manager (NVM)"
 
     # The PROFILE=/dev/null will prevent the setup script from updating
     # the bash profile(s), as this is already configured by the Laptop script.
@@ -443,6 +472,22 @@ install_or_update_nvm() {
     fi
 }
 
+# Configures the mise global tools using the defined configuration file, then installs those tools.
+install_mise_tools() {
+    # Create the default global Mise configuration file, if it doesn't already exist
+    configure_mise
+
+    log_header "🔧 Installing Mise Tools"
+
+    # Add Cargo to the PATH, if it's not already there.
+    if ! echo "$PATH" | grep -q "$HOME/.cargo/bin"; then
+        export PATH="$HOME/.cargo/bin:$PATH"
+    fi
+
+    # Install all tools defined in Mise default global configuration
+    (cd "$HOME" && mise install --yes)
+}
+
 # Returns zero when the Laptop script is considered installed locally, otherwise returns one.
 is_laptop_installed() {
     if [ -d "$laptop_repo_directory" ]; then
@@ -460,6 +505,10 @@ is_laptop_installed() {
 link_file() {
     source="$1"
     destination="$2"
+
+    # The "ln" command will fail if the directories in the destination 
+    # path do not exist. Create all the destination directories, if they do not exist.
+    mkdir -p "$(dirname "$destination")"
 
     log "Creating a new symbolic link from $source to $destination"
     ln -sf "$source" "$destination"
@@ -555,12 +604,17 @@ uninstall() {
 
     uninstall_nvm
 
+    if brew list mise &>/dev/null; then
+        brew uninstall mise # https://mise.jdx.dev
+    fi
+
     # TODO: Ask if you want to uninstall these
     # brew uninstall gh
     # brew uninstall coreutils
     # brew uninstall curl
     # brew uninstall gawk
     # brew uninstall gnupg # https://www.gnupg.org
+    # rustup-init
 
     log_header "🗂️ Removing Application Data"
 
