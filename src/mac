@@ -221,6 +221,10 @@ configure_mise() {
     copy_file "$laptop_src_location/.mise_config.toml" "$laptop_local_directory/.mise_config.toml"
     link_file "$laptop_local_directory/.mise_config.toml" "$HOME/.config/mise/config.toml"
 
+    # Create a local Default Gems file.
+    copy_file "$laptop_src_location/.default-gems" "$laptop_local_directory/.default-gems"
+    link_file "$laptop_local_directory/.default-gems" "$HOME/.default-gems"
+
     # Trust the local configuration file to prevent prompts in the automated install.
     mise trust "$HOME/.config/mise/config.toml" || true
 }
@@ -302,14 +306,14 @@ copy_file() {
 
     if [[ $overwrite == true || ! -f "$destination" ]]; then
         if [[ "$source" == http* ]]; then
-            log "Downloading file from $source to $destination"
+            log "Downloading file from \"$source\" to \"$destination\""
             curl -o "$destination" "$source"
         else
-            log "Copying file from $source to $destination"
+            log "Copying file from \"$source\" to \"$destination\""
             cp "$source" "$destination"
         fi
     else
-        log "No changes to file at $destination."
+        log "No changes to file at \"$destination\"."
     fi
 }
 
@@ -422,11 +426,11 @@ EOF
 install_custom() {
     log_header "🪄  Running Customizations"
     if [[ -f "$laptop_custom_install_script" ]]; then
-        log "Running local customization script at $laptop_custom_install_script"
+        log "Running local customization script at \"$laptop_custom_install_script\""
         chmod +x "$laptop_custom_install_script"
         "$laptop_custom_install_script"
     else
-        log "No customizations found at $laptop_custom_install_script".
+        log "No customizations found at \"$laptop_custom_install_script\"."
     fi
 }
 
@@ -466,7 +470,7 @@ install_or_update_nvm() {
 
     # Verify that nvm is installed and working.
     if command -v nvm >/dev/null 2>&1; then
-        echo "\n✅ Node Version Manager (NVM) version $(nvm --version) is installed.\n"
+        echo "\n✅ Node Version Manager (NVM) version $(nvm --version) is installed."
     else
         echo "\n❌ Node Version Manager (NVM) installation failed.\n" >&2
     fi
@@ -510,7 +514,7 @@ link_file() {
     # path do not exist. Create all the destination directories, if they do not exist.
     mkdir -p "$(dirname "$destination")"
 
-    log "Creating a new symbolic link from $source to $destination"
+    log "Creating a new symbolic link from \"$source\" to \"$destination\""
     ln -sf "$source" "$destination"
 }
 

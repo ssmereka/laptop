@@ -13,4 +13,10 @@
 # the mise shell command, such as "mise shell rust@1.80.1".
 
 [tools]
+kotlin = "latest"
+go = "latest"
+node = "latest"
+opentofu = "latest"
+python = "latest"
+ruby = "latest"
 rust = "stable"

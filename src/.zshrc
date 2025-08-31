@@ -101,11 +101,6 @@ setopt SHARE_HISTORY
 ##### Version Managers
 ########################################
 
-# Mise
-# https://mise.jdx.dev
-# Add the Mise tool to the user's PATH.
-eval "$(mise activate zsh)"
-
 # Rust & Cargo
 # https://rustup.rs
 # Add Rust Cargo to the user's Path
@@ -134,6 +129,16 @@ export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || pr
 # export GOPATH="$HOME/go"
 # PATH="$GOPATH/bin:$PATH"
 
+# Initialize all individual version manager tools before Mise. This way Mise
+# will be the default version manager tool for global installations or when
+# another tool is not defined. When your project relies on a specific tool
+# you can still use it, for example running command "nvm use" will use switch
+# to the Node.js version installed by NVM.
+
+# Mise
+# https://mise.jdx.dev
+# Add the Mise tool to the user's PATH.
+eval "$(mise activate zsh)"
 
 
 ########################################

@@ -1,0 +1,20 @@
+# Default Ruby Gems Configuration
+# 
+# This file defines gems that will be automatically installed whenever
+# you install a new Ruby version using Ruby version managers.
+#
+# Supported by: mise, asdf, rbenv (with rbenv-default-gems plugin), chruby
+#
+# Usage:
+#   1. This file is placed at "~/.default-gems"
+#   2. Install Ruby with your version manager: mise install ruby@3.2.0
+#   3. These gems will be automatically installed with that Ruby version
+#
+# You can specify versions by adding them after the gem name:
+#   rails -v 7.1.0
+#   pry -v 0.14.2
+#
+# Note: Some version managers may require additional plugins or setup
+# to support this feature. Check your version manager's documentation.
+
+rails
