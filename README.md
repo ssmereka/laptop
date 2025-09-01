@@ -75,6 +75,7 @@ Laptop installs and configures tools that are used for software development. Aft
         🐁  mise         https://mise.jdx.dev
         📦  nvm          https://github.com/nvm-sh/nvm
         🔐  op           https://developer.1password.com/docs/cli
+        🌯  tofu         https://opentofu.org
 ```
 
 
@@ -116,6 +117,7 @@ Laptop installs and configures your computer for development. Including programm
 * [NVM] for managing installations of Node.js.
 * [OpenSSL] dependency for cryptography.
 * [PostgreSQL] Database for storing application information in SQL and JSON.
+* [OpenTofu] tool for maintaining infrastructure as code.
 * [Visual Studio Code] for a programming IDE.
 * [Zsh] configures zsh with some opinions (see the [Zsh Manual]).
 
