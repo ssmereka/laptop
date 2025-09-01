@@ -32,13 +32,16 @@ lt-help() {
   \t📥  lt-update \t update this "Laptop" software.
  
   🧰 Tools:
-  \t🧳  asdf  \t https://asdf-vm.com
+
+  \t🏭  aws   \t https://docs.aws.amazon.com/cli/
   \t🍺  brew  \t http://brew.sh/
   \t🐵  code  \t https://code.visualstudio.com
   \t🐱  gh    \t https://cli.github.com/
   \t🌳  git   \t https://git-scm.com
+  \t🐁  mise  \t https://mise.jdx.dev
+  \t📦  nvm   \t https://github.com/nvm-sh/nvm
   \t🔐  op    \t https://developer.1password.com/docs/cli
-  \t🐍  pyenv \t https://github.com/pyenv/pyenv
+  \t🌯  tofu  \t https://opentofu.org
   '
 }
 

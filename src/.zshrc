@@ -40,6 +40,14 @@ fi
 # https://fluxcd.io/flux/cmd/flux_completion_zsh/
 command -v flux >/dev/null && . <(flux completion zsh)
 
+# MacOS comes with a fork of OpenSSL that lacks the headers and libraries required for 
+# compiling some software, such as Ruby on Rails. We installed a full version using
+# Homebrew. These export commands expose the OpenSSL libraries, headers, and tools
+# so they are available at build time and prevents "openssl not found" errors.
+export LDFLAGS="-L$(brew --prefix openssl@3)/lib $LDFLAGS"
+export CPPFLAGS="-I$(brew --prefix openssl@3)/include $CPPFLAGS"
+export PKG_CONFIG_PATH="$(brew --prefix openssl@3)/lib/pkgconfig:$PKG_CONFIG_PATH"
+
 
 ########################################
 ##### ZSH Parameters and Options
@@ -93,29 +101,17 @@ setopt SHARE_HISTORY
 ##### Version Managers
 ########################################
 
-# ASDF Version Manager
-# https://asdf-vm.com
-. $(brew --prefix asdf)/libexec/asdf.sh
-
-# Python Version Manager
-# https://github.com/pyenv/pyenv
-# ASDF python plugin uses pyenv under the hood. These are the configurations for that package manager.
-alias brew='env PATH="${PATH//$(pyenv root)\/shims:/}" brew'
-export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
-
-# ASDF is currently configured to manage node, go, python, and ruby. However these plugins can
-# sometimes not be as reliable as the individual version managers. Settings are included for the
-# standard package managers should you need to use them instead of ASDF.
+# Rust & Cargo
+# https://rustup.rs
+# Add Rust Cargo to the user's Path
+export PATH="$HOME/.cargo/bin:$PATH"
 
 # Node Version Manager (NVM)
 # https://github.com/nvm-sh/nvm
-# # Add NVM to the user's PATH.
-# export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-# # Add NVM autocompletion
-# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
-
+# Add NVM to the user's PATH.
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+# Add NVM autocompletion
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
 # Ruby Version Manager (RVM)
 # https://rvm.io
@@ -133,6 +129,16 @@ eval "$(pyenv init -)"
 # export GOPATH="$HOME/go"
 # PATH="$GOPATH/bin:$PATH"
 
+# Initialize all individual version manager tools before Mise. This way Mise
+# will be the default version manager tool for global installations or when
+# another tool is not defined. When your project relies on a specific tool
+# you can still use it, for example running command "nvm use" will use switch
+# to the Node.js version installed by NVM.
+
+# Mise
+# https://mise.jdx.dev
+# Add the Mise tool to the user's PATH.
+eval "$(mise activate zsh)"
 
 
 ########################################

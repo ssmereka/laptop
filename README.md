@@ -3,15 +3,15 @@ Laptop is a script to set up your computer for software development.
 
 It's idempotent and installs, upgrades, or skips packages based on what is already installed on the machine. In otherwords, there's no downside to running it again and again.
 
-It supports macOS on Apple Silicon and Intel processors.
+It supports macOS on Apple Silicon.
 
->Inspired by [Thoughtbot's Laptop](https://github.com/thoughtbot/laptop), and I hope this inspires you too!
+> Inspired by [Thoughtbot's Laptop](https://github.com/thoughtbot/laptop), and I hope this inspires you too!
 
 ## Getting Started
 
 ### Setup your Secrets
 
-A few secrets are required to get setup. Laptop is configured to retreive these secrets from [1Password](1Password). So you're going to need 1Password for this to work out of the box.
+Laptop will configure your computer so it can communicate with external services. This requires credentials and other information that should be kept secret. Laptop is configured to retreive these secrets from [1Password](1Password). So you're going to need 1Password for this to work out of the box.
 
 1. Download, install, and login to the [1Password MacOS application].
 
@@ -37,34 +37,51 @@ A few secrets are required to get setup. Laptop is configured to retreive these 
     * ✅ Use the SSH Agent
     * ✅ Integrate with 1Password CLI
 
+
 ### Install Laptop
 
 1. Review the [mac] script. Avoid running a script you haven't read!
 
-2. Run the [mac] script.
+2. Run the [mac] script. This will clone the Laptop git project to the directory `~/code/laptop` and setup your computer.
 
     ```bash
     curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh
     ```
 
-This will clone the git project to `~/code/laptop` and setup your computer!
+3. Close and reopen your terminal so that the updated "~/.zshrc" runs and properly initializes your environment.
 
 
 ### Using Laptop
 
-Laptop installs software and configures your Laptop. It also provides some useful commands. Run the command `help` in your terminal for a list of available commands. (You may need to relaunch your terminal if the command doesn't work)
+Laptop installs and configures tools that are used for software development. After running Laptop your machine is ready for development! Laptop also provides some useful commands, in your terminal run `help` to see the list.
 
-![laptop-help](https://github.com/user-attachments/assets/0552bd40-ceff-41d1-b8fa-94d39c908792)
+```
+  💻 Laptop Commands:
+
+        🍰  lt-alias     list alias commands.
+        🏥  lt-help      displays this help menu, can also use "help".
+        🔄  lt-k8s       list kubernetes commands.
+        🏓  lt-myip      displays external IP address.
+        📥  lt-reset     update this "Laptop" software and reset the local configs.
+        📥  lt-update    update this "Laptop" software.
+ 
+  🧰 Tools:
+
+        🏭  aws          https://docs.aws.amazon.com/cli/
+        🍺  brew         http://brew.sh/
+        🐵  code         https://code.visualstudio.com
+        🐱  gh           https://cli.github.com/
+        🌳  git          https://git-scm.com
+        🐁  mise         https://mise.jdx.dev
+        📦  nvm          https://github.com/nvm-sh/nvm
+        🔐  op           https://developer.1password.com/docs/cli
+        🌯  tofu         https://opentofu.org
+```
+
 
 ### Update Laptop
 
-Want the latest updates? Just re-run the [mac] script again:
-
-```bash
-curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh
-```
-
-Optionally, use the Laptop alias:
+Want the latest updates? Just re-run the [mac] script again using `curl` or the `lt-update` command.
 
 ```bash
 lt-update
@@ -72,15 +89,22 @@ lt-update
 
 ## What does Laptop do?
 
-Laptop installs and configures the following software:
+Laptop installs and configures your computer for development. Including programming languages, frameworks, and software tools that are common in web and mobile development. The setup is opinionated and iterated upon of years. It's designed to save us time and shared to help set others up for success.
+
+**Languages:**
+
+* [Kotlin]
+* [Go]
+* [Node.js]
+* [Python]
+* [Ruby] (and [Ruby on Rails])
+* [Rust]
+
+**Software Tools**
 
 * [1Password CLI] for secret management from the commandline.
-* [asdf] for managing programming language versions.
-    * [Go] via the [asdf-golang] plugin.
-    * [Node.js] and npm via the [asdf-nodejs] plugin.
-    * [Python] via the [asdf-python] plugin.
-    * [Ruby] via the [asdf-ruby] plugin.
-* [Atuin]
+* [Atuin] for interactive searches of your shell history.
+* [AWS CLI] command line interface for interacting with Amazon Web Services.
 * [Core Utils] for GNU File, Shell, and Text utilities.
 * [Curl] for interacting with URLs from the commandline.
 * [Gawk] for interacting with files via the commandline.
@@ -88,11 +112,17 @@ Laptop installs and configures the following software:
 * [GitHub CLI] for interacting with the GitHub API.
 * [GnuPG] for encryption and signing.
 * [Homebrew] for managing operating system libraries.
+* [LibYAML] dependency for reading and writing yaml.
+* [Mise] for managing software tools, environments, and automations.
+* [NVM] for managing installations of Node.js.
+* [OpenSSL] dependency for cryptography.
+* [PostgreSQL] Database for storing application information in SQL and JSON.
+* [OpenTofu] tool for maintaining infrastructure as code.
 * [Visual Studio Code] for a programming IDE.
-* [Zsh]configures zsh with some opinions (see the [Zsh Manual]).
+* [Zsh] configures zsh with some opinions (see the [Zsh Manual]).
 
+Let's look at how some of the software tools are configured.
 
-Laptop will configure your computer in a very opinionated way. Let's describe those opinions and how the script is configured to meet them.
 
 ### ZSH Configuration
 
@@ -106,30 +136,45 @@ If you need to enter secret information into your terminal prefix the command wi
 
 Use [Atuin](https://atuin.sh) (using the `Up Arrow` or `CTRL+R`) to interactively view and search your history. Programmatically search with the `history` command, like `history | grep <search term here>`.
 
-### ASDF Version Manager
+
+### Version Manager
 
 When developing you want your development environment to be as close to production as is reasonable. Switching between mutliple versions of software is complicated. To make switching easier, use version managers and package managers.
 
-[Homebrew](https://brew.sh), mac's unofficial package manager, is installed and used to manage the installation of 3rd party software, like `1password` and `curl`.
+[Homebrew](https://brew.sh), mac's unofficial package manager, manages the installation of 3rd party software like `1password` and `curl`.
 
-Language version managers are installed for Node.js, Python, Go, and Ruby. Enabling you to quickly install and use different versions for each application you are developing. These version manager are all managed by [asdf](https://asdf-vm.com). This makes interaction with version managers more consistant as you switch between them or need to add/remove version managers.
+A language version manager called [Mise] is installed for managing several langugaes, enabling you to quickly switch between versions per project. Sometimes projects have tooling around a specific version manager, like NVM or pyenv. While Mise is configured as the default, you can still use other version managers. For example NVM is also installed and you can switch to the NVM managed node version with the `nvm use` command.
+
 
 ### Code Directory
 
-Coding projects from git repositories are stored in the local `~/code` directory. This make it easy to find git projects.
+Coding projects from git repositories are stored in the local `~/code` directory. We recommend using the pattern `~/code/<organization-name>/<repository-name>` so `<organization-name>` and `<repository-name>` align with GitHub. For example `~/code/ssmereka/laptop`. We find having code all in one root level folder makes it easier to work in an IDE or terminal. While a namespacing that mirrors GitHub makes it easy to find the right project and prevents naming collisions.
+
 
 ### Secrets
 
-Secrets belong in a password manager or secret storage **and** you should authorize when anything tries to access those secrets. Laptop will install and configure the 1Password CLI so that secrets can be retrieved programmatically. Git is also configured to use 1Password for authentication and signing.
+Secrets should be encrypted while at rest **and** you should authorize when anything tries to access those secrets. Laptop will install and configure the 1Password CLI so that secrets can be retrieved programmatically. With 1Password prompting you for authorization when anything attempts to access them. Laptop also configures Git to pull credentials from 1Password for authentication and signing. You can extend this to support multiple accounts.
+
 
 ## Customize Laptop
 
-You can customize Laptop for each computer by placing files in the `~/.laptop` directory. If provided, the following files will be used:
+Laptop creates a folder to store all the configuration files it manages. By default this is in the user's home directory at path `~/.config/laptop`. These files are then semantically linked to the appropriate locations as required by the various software tools. You can modified these files as needed to customize your individual setup. Subsequent runs of Laptop will never modifiy these files without confirmation or an override command like `-f` or `--force`.
+
+Additional files can be added to extend some of the existing configurations. For example, you may want to extend the configuartions for multiple accounts or for internal tools.
+
+You can add the following files to the `~/.config/laptop` directory:
+
+* `.zshrc_*` - Files with the `.zshrc_` prefix will be added to the end of the `.zshrc` file and loaded in each session.
+
 
 * `.custom_install.sh` - Script that will be run at the end of the Laptop `install`.
 
 
-Here's a `.custom_install.sh` example:
+### Custom Install Script
+
+You can extend the Laptop script with your own script(s). Adding a `zsh` script at path `~/.laptop/custom_install.sh` and Laptop will automatically run this script after setup. You might add a custom script to install internal tools or to have different setups per machine. Make sure your custom script(s) are idempotent and have the correct permissions to run. Laptop will never modify custom scripts or anything in the `~/.laptop` directory. 
+
+Here's a `~/.laptop/.custom_install.sh` example:
 
 ```zsh
 #!/bin/zsh
@@ -139,22 +184,18 @@ brew "ngrok"
 EOF
 ```
 
-Write your customizations such that they can be run safely more than once.
+
+<!-- Links -->
 
 [1Password]: https://1password.com
 [1Password App Integration]: https://developer.1password.com/docs/cli/app-integration/
 [1Password CLI]: https://developer.1password.com/docs/cli/get-started/
 [1Password MacOS application]: https://downloads.1password.com/mac/1Password.zip
-[asdf]: https://asdf-vm.com
-[asdf-golang]: https://github.com/asdf-community/asdf-golang?tab=readme-ov-file#version-selection
-[asdf-nodejs]: https://github.com/asdf-vm/asdf-nodejs
-[asdf-python]: https://github.com/asdf-community/asdf-python
-[asdf-ruby]: https://github.com/asdf-vm/asdf-ruby
 [Atuin]: https://atuin.sh
 [Authentication SSH Key in GitHub]: https://developer.1password.com/docs/ssh/get-started#step-2-upload-your-public-key-on-github
+[AWS CLI]: https://docs.aws.amazon.com/cli/
 [Core Utils]: https://formulae.brew.sh/formula/coreutils
 [Curl]: https://curl.se
-[mac]: https://github.com/ssmereka/laptop/blob/main/src/mac
 [Homebrew]: http://brew.sh/
 [Gawk]: https://www.gnu.org/software/gawk/
 [Git]: https://git-scm.com/
@@ -162,12 +203,21 @@ Write your customizations such that they can be run safely more than once.
 [GitHub Personal Access Token]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
 [Go]: https://go.dev
 [GnuPG]: https://www.gnupg.org
+[LibYAML]:  https://pyyaml.org/wiki/LibYAML
+[Kotlin]: https://kotlinlang.org
+[mac]: https://github.com/ssmereka/laptop/blob/main/src/mac
+[Mise]: https://mise.jdx.dev
 [Node.js]: https://nodejs.org/en
+[NVM]: https://github.com/nvm-sh/nvm
+[OpenSSL]: https://www.openssl.org/
+[OpenTofu]: https://opentofu.org
+[PostgreSQL]: https://www.postgresql.org
 [Python]: https://www.python.org
 [Ruby]: https://www.ruby-lang.org/en/
+[Ruby on Rails]: https://rubyonrails.org
+[Rust]: https://rustup.rs
 [Signing SSH Key in GitHub]: https://developer.1password.com/docs/ssh/git-commit-signing
 [SSH Key in 1Password]: https://developer.1password.com/docs/ssh/get-started#step-1-generate-an-ssh-key
 [Visual Studio Code]: https://code.visualstudio.com
 [Zsh]: http://www.zsh.org/
 [Zsh Manual]: https://zsh.sourceforge.io/Doc/Release/The-Z-Shell-Manual.html#The-Z-Shell-Manual
-
