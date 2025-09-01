@@ -7,7 +7,7 @@
 code_directory="$HOME/code"
 
 # Directory where a local copy of the Laptop repository will be cloned and stored.
-laptop_repo_directory="$code_directory/laptop"
+laptop_repo_directory="$code_directory/ssmereka/laptop"
 
 # Directory where the Laptop source code is stored.
 laptop_src_directory="$laptop_repo_directory/src"
