@@ -13,6 +13,7 @@
 # the mise shell command, such as "mise shell rust@1.80.1".
 
 [tools]
+cosign = "latest"
 kotlin = "latest"
 go = "latest"
 node = "latest"
