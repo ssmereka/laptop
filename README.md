@@ -21,10 +21,12 @@ Laptop will configure your computer so it can communicate with external services
 
     | Type | Label | Example Value | Description |
     | -----| ----- | ------------- | ----------- |
-    | text | `name` | John Smith | Full name to be used in Git configuration |
-    | text | `email` | john@smith.com | Personal email address to be used in Git configuration |
+    | text | `Name` | John Smith | Full name to be used in Git configuration |
+    | text | `GitHub Email` | john@smith.com | Personal email address to be used in Git configuration |
     | password | `token` | github_pat_asdfjkl | GitHub Personal Access Token to be used with GitHub CLI |
-    | text | `username` | jsmith | GitHub username |
+    | text | `GitHub Username` | jsmith | GitHub username |
+
+    > Note: These are the default names and they are configurable with command `./mac configure`.
 
 3. Generate and save a new [SSH Key in 1Password] with the name `GitHub SSH Key`.
 
