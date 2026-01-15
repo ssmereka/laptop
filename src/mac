@@ -709,7 +709,7 @@ run_custom_script() {
         if [ ! -x "$custom_script_path" ]; then
             log_header "💡" "Found $custom_script_name at path \"$custom_script_path\" with invalid permissions."
             exit_with_error "Custom script at path \"$custom_script_path\" is not executable. " \
-                            "Please update the scripts permissions.\n\n" \
+                            "Please update the script's permissions.\n\n" \
                             "\tTry: chmod +x $custom_script_path"
         fi
 
