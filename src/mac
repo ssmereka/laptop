@@ -745,7 +745,7 @@ update_laptop_repository() {
     if [[ `git status --porcelain` || $(git rev-parse --abbrev-ref HEAD) != "main" ]]; then
 
         # Prompt to inform the user that there are unsaved changes in the Laptop git repository.
-        local log_attention_with_prompt="Continue without pulling the latest changes? [Y/n]"
+        local attention_prompt="Continue without pulling the latest changes? [Y/n]"
         local attention_text="Cannot pull the latest changes from the remote Laptop repository, "
         attention_text+="\n\tbecause there are local changes or you are not on the "main" branch."
         attention_text+="\n\n"
@@ -756,7 +756,7 @@ update_laptop_repository() {
         attention_text+="\tN:  Stash the local changes, then pull the latest from the remote Laptop"
         attention_text+="\n\t    repository. Reapply the local changes with \"git stash pop\" command."
 
-        if log_attention_with_prompt "$log_attention_with_prompt" "$attention_text"; then
+        if log_attention_with_prompt "$attention_prompt" "$attention_text"; then
             # User chose to continue without pulling the latest changes.
             log "Skipped pulling the latest changes from the remote Laptop repository."
             return
