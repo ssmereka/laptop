@@ -15,12 +15,12 @@ laptop_repo_directory=""
 remote_laptop_base_url=""
 remote_laptop_ssh_url=""
 
-secret_item_name_git="GitHub"
-secret_field_name_git_email="email"
-secret_field_name_git_name="name"
-secret_field_name_git_username="username"
-secret_item_name_ssh_key="GitHub SSH Key"
-secret_field_name_ssh_key_public="public key"
+secret_item_name_git=""
+secret_field_name_git_email=""
+secret_field_name_git_name=""
+secret_field_name_git_username=""
+secret_item_name_ssh_key=""
+secret_field_name_ssh_key_public=""
 
 
 # The following variables are generated based on the global configurations in the 
