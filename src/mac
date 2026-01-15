@@ -701,7 +701,9 @@ require_non_empty_string_variable() {
 # Run a custom script located at the given path, if it exists. Verifies the script is 
 # executable and asks for confirmation before running it, unless confirmation is disabled.
 # Parameters:
-#   custom_script_path: The path to the custom script to run.
+#   custom_script_path:  The path to the custom script to run.
+#   custom_script_name:  A friendly name for the script, used in log messages. Defaults to
+#                        "custom script" if not provided.
 #   require_confirmation: A boolean indicating whether to prompt the user for confirmation
 #                         before running the script. Defaults to true.
 run_custom_script() {
