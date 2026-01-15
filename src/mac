@@ -1,5 +1,8 @@
 #!/bin/zsh
 
+# LAPTOP
+# Make with ❤️ by Scott Smereka
+
 
 # Global Configurations
 
@@ -9,6 +12,8 @@ code_directory=""
 laptop_local_directory=""
 laptop_custom_directory=""
 laptop_repo_directory=""
+remote_laptop_base_url=""
+remote_laptop_ssh_url=""
 
 secret_item_name_git="GitHub"
 secret_field_name_git_email="email"
@@ -18,8 +23,8 @@ secret_item_name_ssh_key="GitHub SSH Key"
 secret_field_name_ssh_key_public="public key"
 
 
-# The following variables are generated based on the user-configurable global 
-# configurations in the "set_global_configurations" method
+# The following variables are generated based on the global configurations in the 
+# "set_global_configurations" method.
 laptop_custom_config_script=""
 laptop_custom_pre_install_script=""
 laptop_custom_post_install_script=""
@@ -53,7 +58,9 @@ fi
 
 # Global Configurations
 
-# Runs the user's custom configuration script, then updates the global variables.
+# Sets default values for the script's global variables. Then sources the user's
+# custom configuration script that can override those values. Finally variables
+# such as custom script paths are updated based on those new values.
 set_global_configurations() {
     # Directory where all coding projects will be cloned and stored.
     code_directory="$HOME/code"
@@ -69,8 +76,8 @@ set_global_configurations() {
     laptop_custom_config_script="$HOME/.laptop/custom_config.sh"
 
     # Directory where a user's custom scripts are stored. Laptop will run and source 
-    # files from this directory, make sure proper permissions are set. Laptop will never
-    # modified files in this directory.
+    # files from this directory, make sure proper permissions are set. Laptop will always
+    # require confirmation or a force flag before overwriting files in this directory.
     laptop_custom_directory="$HOME/.laptop"
 
     # Directory where a local copy of the Laptop repository will be cloned and stored.
@@ -79,6 +86,9 @@ set_global_configurations() {
     # Base URL for the remote Laptop repository.
     remote_laptop_base_url="https://raw.githubusercontent.com/ssmereka/laptop/refs/heads/main"
 
+    # The URL used to clone the remote Laptop repository via SSH.
+    remote_laptop_ssh_url="git@github.com:ssmereka/laptop.git"
+    
     # The name of the 1Password "item" where the Git configurations exist, including email, name, and
     # username.
     secret_item_name_git="GitHub"
@@ -113,6 +123,8 @@ set_global_configurations() {
     require_non_empty_string_variable "laptop_custom_config_script"
     require_non_empty_string_variable "laptop_custom_directory"
     require_non_empty_string_variable "laptop_repo_directory"
+    require_non_empty_string_variable "remote_laptop_base_url"
+    require_non_empty_string_variable "remote_laptop_ssh_url"
     require_non_empty_string_variable "secret_item_name_git"
     require_non_empty_string_variable "secret_field_name_git_email"
     require_non_empty_string_variable "secret_field_name_git_name"
@@ -143,29 +155,32 @@ set_global_configurations() {
 
 # Methods
 
-# Removes all secrets from memory.
+# Clears any variables that may be storing secrets pulled from 1Password.
 clear_secrets() {
     log_header "🔒" "Clear Secrets from Memory"
     log "Erasing secret variables \"git_email\", \"git_name\", \"git_ssh_public_key\", and \"git_username\" from memory."
+
     unset git_email
     unset git_name
     unset git_ssh_public_key
     unset git_username
 }
 
-# Clone the Laptop repository locally, if it doesn't exist locally
+# Clone the remote Laptop repository locally using SSH, if it doesn't already exist.
 clone_laptop_repository() {
     if [[ ! -d "$laptop_repo_directory" ]]; then
         mkdir -p $laptop_repo_directory
-        git clone git@github.com:ssmereka/laptop.git "$laptop_repo_directory"
+        git clone $remote_laptop_ssh_url "$laptop_repo_directory"
 
         if [[ ! -f "$laptop_repo_directory/src/mac" ]]; then
-            exit_with_error "Failed to clone Laptop to \"$laptop_repo_directory\".\n\n\tCommand:  " \
-                            "git clone git@github.com:ssmereka/laptop.git \"$laptop_repo_directory\""
+            error "Failed to clone Laptop from \"$remote_laptop_ssh_url\" to \"$laptop_repo_directory\"."
+            log_command "git clone $remote_laptop_ssh_url \"$laptop_repo_directory\""
+            exit 1
         fi
     fi
 }
 
+# Create a custom configuration file for Laptop that the user can modify.
 configure_laptop_script() {
     laptop_src_location=${1:-"$laptop_repo_directory/src"}
 
@@ -173,35 +188,58 @@ configure_laptop_script() {
 
     copy_file "$laptop_repo_directory/examples/custom_config.sh" "$laptop_custom_config_script"
 
-    log ""
-    log_attention "A custom configuration file is located at \"$laptop_custom_config_script\". " \
-        "Modify this file to customize your Laptop installation."
-    log_command "code \"$laptop_custom_config_script\""
+    attention_prompt="Open the custom configuration file now? [Y/n]"
+    attention_text="Customize Laptop by modifying the file \"$laptop_custom_config_script\"."
+
+    if log_attention_with_prompt "$attention_prompt" "$attention_text"; then
+        # Open the custom configuration file for editing.
+        if [ -d "/Applications/Visual Studio Code.app" ]; then
+            code "$laptop_custom_config_script"
+        else
+            open -e "$laptop_custom_config_script"
+        fi
+    fi
 }
 
 
-# Configure the 1Password GitHub CLI plugin so that it uses the Personal Access Token from
-# 1Password for authentication.
+# Configure the 1Password GitHub CLI plugin so that it uses the Personal Access Token
+# from 1Password for authentication.
 configure_gh() {
     log_header "😸" "Configuring GitHub CLI"
 
-    if [[ ! -f "$HOME/.config/op/plugins/gh.json" ]]; then
-        log "Signing into 1Password to retrieve the GitHub Personal Access Token"
-        op signin
-        
-        log "\n🚨 Initializing the 1Password GitHub Plugin. Follow these steps:\n\n" \
-            "  1. When asked to locate your token, navigate to the name of the 1Password item where your Personal Access Token was stored.\n" \
-            "  2. When asked to configure when the chosen credentials will be used, select \"Use as global default on my system.\"\n\n" \
-            "More info can be found here:\n" \
-            "https://developer.1password.com/docs/cli/shell-plugins/github/#step-2-configure-your-default-credentials\n\n" \
-            "> Press any key to continue..."
-        read -n 1
-        
-        op plugin init gh
+    github_plugin_config_path="$HOME/.config/op/plugins/gh.json"
+
+    if [[ ! -f "$github_plugin_config_path" ]]; then
+        attention_text="Initializing the 1Password GitHub CLI Plugin. Follow these steps:"
+        attention_text+="\n"
+        attention_text+="\n\t1. Make sure you have a valid GitHub Personal Access Token stored in 1Password in a field named \"token\"."
+        attention_text+="\n\t2. When asked to locate your token, navigate to the name of the 1Password item where your Personal Access Token was stored."
+        attention_text+="\n\t3. When asked to configure when the chosen credentials will be used, select \"Use as global default on my system.\""
+        attention_text+="\n"
+        attention_text+="\n\tMore info can be found here:"
+        attention_text+="\n\thttps://developer.1password.com/docs/cli/shell-plugins/github/#step-2-configure-your-default-credentials"
+
+        if log_attention_with_prompt "" "$attention_text"; then
+            log_attention "Requesting Unlock of 1Password to configure the GitHub plugin."
+            op signin
+            
+            log "Initializing the 1Password GitHub CLI plugin."
+            op plugin init gh
+        else
+            log "The 1Password GitHub CLI plugin configuration was cancelled by the user."
+            return 1
+        fi
     fi
 
     log "Verifying 1Password GitHub plugin"
     op plugin inspect gh
+
+    attention_text="Check if the verification was successful.\n"
+    attention_text+="\n\tIf you encounter an issue try deleting the configuration at \"$github_plugin_config_path\", then try again."
+
+    if ! log_attention_with_prompt "" "$attention_text"; then
+        exit_with_error "The 1Password GitHub CLI plugin configuration was cancelled by the user."
+    fi
 }
 
 # Create a Git configuration file with the user's GitHub information from 1Password.
@@ -364,13 +402,13 @@ clear_laptop_configs() {
 
 # Display an error message
 error() {
-    print -- "\n🔴 [Error]: "$*"\n"
+    print -- " 🔴 [$(date '+%T')] ERROR: "$*"\n"
 }
 
 # Handle error messages by printing them and exiting with a failure status.
 exit_with_error() {
     error "$*"
-    exit 1
+    exit
 }
 
 # Get secrets from 1Password and store them in global variables. This is a seperate method to
@@ -563,7 +601,7 @@ link_file() {
 
 # Display a message to the user.
 log() {
-    print -- $*
+    print -- "    [$(date '+%T')] $*\n"
 }
 
 # Display all global configuration settings.
@@ -578,6 +616,7 @@ log_config() {
     
     log "\nRemote Repository:"
     log "  remote_laptop_base_url:   \"$remote_laptop_base_url\""
+    log "  remote_laptop_ssh_url:    \"$remote_laptop_ssh_url\""
     
     log "\n1Password Secret References:"
     log "  secret_item_name_git:                \"$secret_item_name_git\""
@@ -596,7 +635,24 @@ log_config() {
 }
 
 log_attention() {
-    print -- " 🟠  ATTENTION: "$*"\n"
+    print -- " 🟠 [$(date '+%T')] ATTENTION: "$*"\n"
+}
+
+log_attention_with_prompt() {
+    local prompt="${1:-Ready to continue? [Y/n]}"
+    local text="${@:2}"
+
+    log_attention "$text"
+    read "response? 🤨 $prompt "
+    print -- ""
+
+    if [[ -z $response || $response =~ ^[Yy] ]]; then
+        # User confirmed with an empty response (ie. pressed enter) or the letter "Y".
+        return 0
+    else
+        # User declined by entering any value (length > zero) that is not "Y".
+        return 1
+    fi
 }
 
 log_command() {
@@ -689,23 +745,23 @@ update_laptop_repository() {
     if [[ `git status --porcelain` || $(git rev-parse --abbrev-ref HEAD) != "main" ]]; then
 
         # Prompt to inform the user that there are unsaved changes in the Laptop git repository.
-        log_attention 'Cannot pull the latest changes from the remote Laptop repository,
-                because there are local changes or you are not on the "main" branch.
+        local log_attention_with_prompt="Continue without pulling the latest changes? [Y/n]"
+        local attention_text="Cannot pull the latest changes from the remote Laptop repository, "
+        attention_text+="\n\tbecause there are local changes or you are not on the "main" branch."
+        attention_text+="\n\n"
+        attention_text+="\tY:  Proceed without the latest changes from the remote Laptop repository."
+        attention_text+="\n\n"
+        attention_text+="\t    OR"
+        attention_text+="\n\n"
+        attention_text+="\tN:  Stash the local changes, then pull the latest from the remote Laptop"
+        attention_text+="\n\t    repository. Reapply the local changes with \"git stash pop\" command."
 
-        Y:  Proceed without the latest changes from the remote Laptop repository.
-
-            OR
-
-        N:  Stash the local changes, then pull the latest from the remote Laptop repository.
-            Reapply the local changes with "git stash pop" command.'
-
-        read "response?Continue without pulling the latest changes? [Y/n]? "
-        log ""
-
-        if [[ -z $response || $response =~ ^[Yy] ]]; then
-            log "\nSkipped pulling the latest changes from the remote Laptop repository."
+        if log_attention_with_prompt "$log_attention_with_prompt" "$attention_text"; then
+            # User chose to continue without pulling the latest changes.
+            log "Skipped pulling the latest changes from the remote Laptop repository."
             return
         else
+            # User chose to stash the local changes and pull latest.
             log_attention "Stashing local changes. After Laptop completes you can restore those changes with:"
             log_command "cd '$laptop_repo_directory' && git stash pop"
             git stash

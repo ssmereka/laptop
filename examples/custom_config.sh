@@ -14,8 +14,8 @@ laptop_local_directory="$HOME/.config/laptop"
 laptop_custom_config_script="$HOME/.laptop/custom_config.sh"
 
 # Directory where a user's custom scripts are stored. Laptop will run and source 
-# files from this directory, make sure proper permissions are set. Laptop will never
-# modified files in this directory.
+# files from this directory, make sure proper permissions are set. Laptop will always
+# require confirmation or a force flag before overwriting files in this directory.
 laptop_custom_directory="$HOME/.laptop"
 
 # Directory where a local copy of the Laptop repository will be cloned and stored.
@@ -23,6 +23,9 @@ laptop_repo_directory="$code_directory/ssmereka/laptop"
 
 # Base URL for the remote Laptop repository.
 remote_laptop_base_url="https://raw.githubusercontent.com/ssmereka/laptop/refs/heads/main"
+
+# The URL used to clone the remote Laptop repository via SSH.
+remote_laptop_ssh_url="git@github.com:ssmereka/laptop.git"
 
 # The name of the 1Password "item" where the Git configurations exist, including email, name, and
 # username.
