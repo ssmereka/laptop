@@ -170,11 +170,11 @@ clear_secrets() {
 clone_laptop_repository() {
     if [[ ! -d "$laptop_repo_directory" ]]; then
         mkdir -p "$laptop_repo_directory"
-        git clone $remote_laptop_ssh_url "$laptop_repo_directory"
+        git clone "$remote_laptop_ssh_url" "$laptop_repo_directory"
 
         if [[ ! -f "$laptop_repo_directory/src/mac" ]]; then
             error "Failed to clone Laptop from \"$remote_laptop_ssh_url\" to \"$laptop_repo_directory\"."
-            log_command "git clone $remote_laptop_ssh_url \"$laptop_repo_directory\""
+            log_command "git clone \"$remote_laptop_ssh_url\" \"$laptop_repo_directory\""
             exit 1
         fi
     fi
@@ -418,7 +418,7 @@ exit_with_error() {
     exit 1
 }
 
-# Get secrets from 1Password and store them in global variables. This is a separate method to
+# Get secrets from 1Password and store them in global variables. This is a separate method
 # so secrets can be gathered at the start of the script to prevent user interactions in the 
 # middle of a lengthy script.
 get_secrets() {
