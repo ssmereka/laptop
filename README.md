@@ -174,14 +174,20 @@ You can add the following files to the `~/.config/laptop` directory:
 * `.zshrc_*` - Files with the `.zshrc_` prefix will be added to the end of the `.zshrc` file and loaded in each session.
 
 
-* `.custom_install.sh` - Script that will be run at the end of the Laptop `install`.
-
-
 ### Custom Install Script
 
-You can extend the Laptop script with your own script(s). Adding a `zsh` script at path `~/.laptop/custom_install.sh` and Laptop will automatically run this script after setup. You might add a custom script to install internal tools or to have different setups per machine. Make sure your custom script(s) are idempotent and have the correct permissions to run. Laptop will never modify custom scripts or anything in the `~/.laptop` directory. 
+You can extend the Laptop install/uninstall by adding `zsh` scripts to the custome config directory. You may want to do this to install additional tools or tweak configurations per machine.
 
-Here's a `~/.laptop/.custom_install.sh` example:
+By default this is at path `~/.laptop/custom_install.sh`. Laptop will automatically run the following scripts, if they exist:
+
+* `custom_pre_install.sh` - Run before a Laptop install command is executed.
+* `custom_post_install.sh` - Run after a Laptop install command is finished executing.
+* `custom_pre_uninstall.sh` - Run before a Laptop uninstall command is executed.
+* `custom_post_uninstall.sh` - Run after a Laptop uninstall command is finished executing.
+
+Custom scripts will be "sourced" so they run in the same shell as the Laptop script. As if they were all in the same file. This gives you access to all the variables and methods in the Laptop script. Use caution when assigning global variables and methods to avoid collisions. Also make sure your scripts are idempotent and have the correct permissions.
+
+Here is an example `custom_post_install.sh` script:
 
 ```zsh
 #!/bin/zsh
