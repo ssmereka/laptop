@@ -712,8 +712,6 @@ run_custom_script() {
     require_confirmation=${3:-true}
 
     if [ -f "$custom_script_path" ]; then
-        
-        
         # Verify custom script is executable.
         if [ ! -x "$custom_script_path" ]; then
             log_header "💡" "Found $custom_script_name at path \"$custom_script_path\" with invalid permissions."
@@ -732,7 +730,6 @@ run_custom_script() {
 
         log_header "🏃" "$custom_script_name"
         log "Running the $custom_script_name at path \"$custom_script_path\""
-
 
         # Execute the script in the current shell environment.
         set -a
