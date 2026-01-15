@@ -878,7 +878,7 @@ uninstall_nvm() {
     fi
 }
 
-# Interprit commandline arguments and run the appropriate methods.
+# Interpret commandline arguments and run the appropriate methods.
 main() {
     configure_flag=false
     install_flag=false
