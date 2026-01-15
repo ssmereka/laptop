@@ -216,7 +216,7 @@ configure_gh() {
     local github_plugin_config_path="$HOME/.config/op/plugins/gh.json"
 
     if [[ ! -f "$github_plugin_config_path" ]]; then
-        attention_text="Initializing the 1Password GitHub CLI Plugin. Follow these steps:"
+        local attention_text="Initializing the 1Password GitHub CLI Plugin. Follow these steps:"
         attention_text+="\n"
         attention_text+="\n\t1. Make sure you have a valid GitHub Personal Access Token stored in 1Password in a field named \"token\"."
         attention_text+="\n\t2. When asked to locate your token, navigate to the name of the 1Password item where your Personal Access Token was stored."
@@ -240,7 +240,7 @@ configure_gh() {
     log "Verifying 1Password GitHub plugin"
     op plugin inspect gh
 
-    attention_text="Check if the verification was successful.\n"
+    local attention_text="Check if the verification was successful.\n"
     attention_text+="\n\tIf you encounter an issue try deleting the configuration at \"$github_plugin_config_path\", then try again."
 
     if ! log_attention_with_prompt "" "$attention_text"; then
@@ -443,13 +443,13 @@ get_secrets() {
     log "Retrieving fields \"$secret_field_name_git_email\", \"$secret_field_name_git_name\", and" \
         "\"$secret_field_name_git_username\" from 1Password item \"$secret_item_name_git\"."
 
-    local git_email=$(op item get "$secret_item_name_git" --fields "$secret_field_name_git_email")
-    local git_name=$(op item get "$secret_item_name_git" --fields "$secret_field_name_git_name")
-    local git_username=$(op item get "$secret_item_name_git" --fields "$secret_field_name_git_username")
+    git_email=$(op item get "$secret_item_name_git" --fields "$secret_field_name_git_email")
+    git_name=$(op item get "$secret_item_name_git" --fields "$secret_field_name_git_name")
+    git_username=$(op item get "$secret_item_name_git" --fields "$secret_field_name_git_username")
 
     if [[ -z "$git_email" || -z "$git_name" || -z "$git_username" ]]; then
-        exit_with_error "Failed to lookup secret fields \"email\", \"name\", and \"username\"" \
-                        "from item \"GitHub\" in 1Password. Make sure they exist."
+        exit_with_error "Failed to lookup secret fields \"$secret_field_name_git_email\", \"$secret_field_name_git_name\", and \"$secret_field_name_git_username\"" \
+                        "from item \"$secret_item_name_git\" in 1Password. Make sure they exist."
     fi
 
     log "Retrieving field \"$secret_field_name_ssh_key_public\" from 1Password item \"$secret_item_name_ssh_key\"."
@@ -457,8 +457,8 @@ get_secrets() {
     git_ssh_public_key=$(op item get "$secret_item_name_ssh_key" --fields "$secret_field_name_ssh_key_public")
 
     if [[ -z "$git_ssh_public_key" ]]; then
-        exit_with_error "Failed to lookup secret fields \"public key\" from item" \
-                        "\"GitHub\" in 1Password. Make sure it exists."
+        exit_with_error "Failed to lookup secret field \"$secret_field_name_ssh_key_public\" from item" \
+                        "\"$secret_item_name_ssh_key\" in 1Password. Make sure it exists."
     fi
 }
 
@@ -525,7 +525,7 @@ EOF
 # Homebrew if it's already installed.
 install_or_update_homebrew() {
     if [[ $(command -v brew) == "" ]]; then
-        log_header "🍺" "Installing Hombrew"
+        log_header "🍺" "Installing Homebrew"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
         # Add Homebrew to the user's PATH, if it's not already there.

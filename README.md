@@ -176,9 +176,9 @@ You can add the following files to the `~/.config/laptop` directory:
 
 ### Custom Install Script
 
-You can extend the Laptop install/uninstall by adding `zsh` scripts to the custom config directory. You may want to do this to install additional tools or tweak configurations per machine.
+You can extend the Laptop install or uninstall by adding `zsh` scripts to the custom config directory. You may want to do this to install additional tools or tweak configurations per machine.
 
-By default this is at path `~/.laptop/custom_install.sh`. Laptop will automatically run the following scripts, if they exist:
+By default this is directory is at path `~/.laptop/`. Laptop will automatically run the following scripts, if they exist in that directory:
 
 * `custom_pre_install.sh` - Run before a Laptop install command is executed.
 * `custom_post_install.sh` - Run after a Laptop install command is finished executing.
