@@ -144,11 +144,11 @@ set_global_configurations() {
     laptop_custom_post_install_script="$laptop_custom_directory/custom_post_install.sh"
 
     # Path to the user's optional custom pre uninstall script. This file is executed before
-    # the install command.
+    # the uninstall command.
     laptop_custom_pre_uninstall_script="$laptop_custom_directory/custom_pre_uninstall.sh"
 
     # Path to the user's optional custom post uninstall script. This file is executed after
-    # the install command.
+    # the uninstall command.
     laptop_custom_post_uninstall_script="$laptop_custom_directory/custom_post_uninstall.sh"
 }
 
@@ -169,7 +169,7 @@ clear_secrets() {
 # Clone the remote Laptop repository locally using SSH, if it doesn't already exist.
 clone_laptop_repository() {
     if [[ ! -d "$laptop_repo_directory" ]]; then
-        mkdir -p $laptop_repo_directory
+        mkdir -p "$laptop_repo_directory"
         git clone $remote_laptop_ssh_url "$laptop_repo_directory"
 
         if [[ ! -f "$laptop_repo_directory/src/mac" ]]; then
@@ -252,7 +252,7 @@ configure_gh() {
 # Create a Git configuration file with the user's GitHub information from 1Password.
 # Parameters:
 #   laptop_src_location: A local directory path or a remote URL for the Laptop source code
-#                        directory. Defaults to the "laptop_$laptop_repo_directory/src" variable.
+#                        directory. Defaults to the "$laptop_repo_directory/src" variable.
 configure_git() {
     laptop_src_location=${1:-"$laptop_repo_directory/src"}
 
@@ -458,7 +458,7 @@ get_secrets() {
     git_ssh_public_key=$(op item get "$secret_item_name_ssh_key" --fields "$secret_field_name_ssh_key_public")
 
     if [[ -z "$git_ssh_public_key" ]]; then
-        exit_with_error "Failed to lookup secret fields \"public keyl\" from item" \
+        exit_with_error "Failed to lookup secret fields \"public key\" from item" \
                         "\"GitHub\" in 1Password. Make sure it exists."
     fi
 }
@@ -742,7 +742,7 @@ run_custom_script() {
 # user will be prompted to stash those changes before pulling. If the user declines the update will
 # be cancelled, but the script will continue.
 update_laptop_repository() {
-    pushd $laptop_repo_directory > /dev/null
+    pushd "$laptop_repo_directory" > /dev/null
 
     log_header "🔁" "Updating Laptop Repository"
 
@@ -753,7 +753,7 @@ update_laptop_repository() {
         # Prompt to inform the user that there are unsaved changes in the Laptop git repository.
         local attention_prompt="Continue without pulling the latest changes? [Y/n]"
         local attention_text="Cannot pull the latest changes from the remote Laptop repository, "
-        attention_text+="\n\tbecause there are local changes or you are not on the "main" branch."
+        attention_text+="\n\tbecause there are local changes or you are not on the \"main\" branch."
         attention_text+="\n\n"
         attention_text+="\tY:  Proceed without the latest changes from the remote Laptop repository."
         attention_text+="\n\n"
