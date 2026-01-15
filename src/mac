@@ -135,7 +135,7 @@ set_global_configurations() {
 
     # The following paths can be derived from the global configuration variables.
 
-    # Path to the user's optional custom post install script. This file is executed before
+    # Path to the user's optional custom pre install script. This file is executed before
     # the install command.
     laptop_custom_pre_install_script="$laptop_custom_directory/custom_pre_install.sh"
 
@@ -143,11 +143,11 @@ set_global_configurations() {
     # the install command.
     laptop_custom_post_install_script="$laptop_custom_directory/custom_post_install.sh"
 
-    # Path to the user's optional custom post install script. This file is executed before
+    # Path to the user's optional custom pre uninstall script. This file is executed before
     # the install command.
     laptop_custom_pre_uninstall_script="$laptop_custom_directory/custom_pre_uninstall.sh"
 
-    # Path to the user's optional custom post install script. This file is executed after
+    # Path to the user's optional custom post uninstall script. This file is executed after
     # the install command.
     laptop_custom_post_uninstall_script="$laptop_custom_directory/custom_post_uninstall.sh"
 }
@@ -182,9 +182,16 @@ clone_laptop_repository() {
 
 # Create a custom configuration file for Laptop that the user can modify.
 configure_laptop_script() {
-    laptop_examples_location=${1:-"$laptop_repo_directory/examples"}
-
+    
     log_header "🔧" "Setup Custom Laptop Configuration"
+    
+    # By default, use the remote Laptop repository source files when configuring the computer.
+    local laptop_examples_location="$remote_laptop_base_url/examples"
+
+    if is_laptop_installed; then
+        # Use the local files for configuration
+        laptop_examples_location="$laptop_repo_directory/examples"
+    fi
 
     copy_file "$laptop_examples_location/custom_config.sh" "$laptop_custom_config_script"
 
@@ -408,7 +415,7 @@ error() {
 # Handle error messages by printing them and exiting with a failure status.
 exit_with_error() {
     error "$*"
-    exit
+    exit 1
 }
 
 # Get secrets from 1Password and store them in global variables. This is a separate method to
