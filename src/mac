@@ -182,11 +182,11 @@ clone_laptop_repository() {
 
 # Create a custom configuration file for Laptop that the user can modify.
 configure_laptop_script() {
-    laptop_src_location=${1:-"$laptop_repo_directory/src"}
+    laptop_examples_location=${1:-"$laptop_repo_directory/examples"}
 
     log_header "🔧" "Setup Custom Laptop Configuration"
 
-    copy_file "$laptop_repo_directory/examples/custom_config.sh" "$laptop_custom_config_script"
+    copy_file "$laptop_examples_location/custom_config.sh" "$laptop_custom_config_script"
 
     attention_prompt="Open the custom configuration file now? [Y/n]"
     attention_text="Customize Laptop by modifying the file \"$laptop_custom_config_script\"."
