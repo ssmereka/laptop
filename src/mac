@@ -182,7 +182,6 @@ clone_laptop_repository() {
 
 # Create a custom configuration file for Laptop that the user can modify.
 configure_laptop_script() {
-    
     log_header "🔧" "Setup Custom Laptop Configuration"
     
     # By default, use the remote Laptop repository source files when configuring the computer.
@@ -195,8 +194,8 @@ configure_laptop_script() {
 
     copy_file "$laptop_examples_location/custom_config.sh" "$laptop_custom_config_script"
 
-    attention_prompt="Open the custom configuration file now? [Y/n]"
-    attention_text="Customize Laptop by modifying the file \"$laptop_custom_config_script\"."
+    local attention_prompt="Open the custom configuration file now? [Y/n]"
+    local attention_text="Customize Laptop by modifying the file \"$laptop_custom_config_script\"."
 
     if log_attention_with_prompt "$attention_prompt" "$attention_text"; then
         # Open the custom configuration file for editing.
@@ -214,7 +213,7 @@ configure_laptop_script() {
 configure_gh() {
     log_header "😸" "Configuring GitHub CLI"
 
-    github_plugin_config_path="$HOME/.config/op/plugins/gh.json"
+    local github_plugin_config_path="$HOME/.config/op/plugins/gh.json"
 
     if [[ ! -f "$github_plugin_config_path" ]]; then
         attention_text="Initializing the 1Password GitHub CLI Plugin. Follow these steps:"
@@ -254,7 +253,7 @@ configure_gh() {
 #   laptop_src_location: A local directory path or a remote URL for the Laptop source code
 #                        directory. Defaults to the "$laptop_repo_directory/src" variable.
 configure_git() {
-    laptop_src_location=${1:-"$laptop_repo_directory/src"}
+    local laptop_src_location=${1:-"$laptop_repo_directory/src"}
 
     log_header "🔧" "Configuring Git"
 
@@ -294,7 +293,7 @@ configure_git() {
 #   laptop_src_location: A local directory path or a remote URL for the Laptop source code
 #                        directory. Defaults to the "$laptop_repo_directory/src" variable.
 configure_mise() {
-    laptop_src_location=${1:-"$laptop_repo_directory/src"}
+    local laptop_src_location=${1:-"$laptop_repo_directory/src"}
 
     log_header "🔧" "Configuring Mise"
 
@@ -315,7 +314,7 @@ configure_mise() {
 #   laptop_src_location: A local directory path or a remote URL for the Laptop source code
 #                        directory. Defaults to the "$laptop_repo_directory/src" variable.
 configure_ssh() {
-    laptop_src_location=${1:-"$laptop_repo_directory/src"}
+    local laptop_src_location=${1:-"$laptop_repo_directory/src"}
 
     log_header "🔧" "Configuring SSH"
 
@@ -354,7 +353,7 @@ configure_ssh() {
 #   laptop_src_location: A local directory path or a remote URL for the Laptop source code
 #                        directory. Defaults to the "$laptop_repo_directory/src" variable.
 configure_zsh() {
-    laptop_src_location=${1:-"$laptop_repo_directory/src"}
+    local laptop_src_location=${1:-"$laptop_repo_directory/src"}
 
     log_header "🔧" "Configuring ZSH"
 
@@ -378,11 +377,11 @@ configure_zsh() {
 #   destination_path: The destination path where the file will be copied or downloaded.
 #   overwrite: A boolean indicating whether to replace the destination file; defaults to false.
 copy_file() {
-    source_path=$1
-    destination_path=$2
-    overwrite=${3:-false}
+    local source_path=$1
+    local destination_path=$2
+    local overwrite=${3:-false}
 
-    destination_directory="$(dirname "${destination_path}")"
+    local destination_directory="$(dirname "${destination_path}")"
     mkdir -p "$destination_directory"
 
     if [[ $overwrite == true || ! -f "$destination_path" ]]; then
@@ -444,9 +443,9 @@ get_secrets() {
     log "Retrieving fields \"$secret_field_name_git_email\", \"$secret_field_name_git_name\", and" \
         "\"$secret_field_name_git_username\" from 1Password item \"$secret_item_name_git\"."
 
-    git_email=$(op item get "$secret_item_name_git" --fields "$secret_field_name_git_email")
-    git_name=$(op item get "$secret_item_name_git" --fields "$secret_field_name_git_name")
-    git_username=$(op item get "$secret_item_name_git" --fields "$secret_field_name_git_username")
+    local git_email=$(op item get "$secret_item_name_git" --fields "$secret_field_name_git_email")
+    local git_name=$(op item get "$secret_item_name_git" --fields "$secret_field_name_git_name")
+    local git_username=$(op item get "$secret_item_name_git" --fields "$secret_field_name_git_username")
 
     if [[ -z "$git_email" || -z "$git_name" || -z "$git_username" ]]; then
         exit_with_error "Failed to lookup secret fields \"email\", \"name\", and \"username\"" \
@@ -583,7 +582,7 @@ install_mise_tools() {
 # Returns zero when the Laptop script is considered installed locally, otherwise returns one.
 is_laptop_installed() {
     if [ -d "$laptop_repo_directory" ]; then
-        return 0 # Labtop is already installed.
+        return 0 # Laptop is already installed.
     else
         return 1 # Laptop is not yet installed.
     fi
@@ -595,8 +594,8 @@ is_laptop_installed() {
 #   source_path: The path to the source file to copy or URL of the file to download.
 #   destination_path: The destination path where the file will be copied or downloaded.
 link_file() {
-    source_path="$1"
-    destination_path="$2"
+    local source_path="$1"
+    local destination_path="$2"
 
     # The "ln" command will fail if the directories in the destination 
     # path do not exist. Create all the destination directories, if they do not exist.
@@ -707,9 +706,9 @@ require_non_empty_string_variable() {
 #   require_confirmation: A boolean indicating whether to prompt the user for confirmation
 #                         before running the script. Defaults to true.
 run_custom_script() {
-    custom_script_path="$1"
-    custom_script_name="${2:-custom script}"
-    require_confirmation=${3:-true}
+    local custom_script_path="$1"
+    local custom_script_name="${2:-custom script}"
+    local require_confirmation=${3:-true}
 
     if [ -f "$custom_script_path" ]; then
         # Verify custom script is executable.
