@@ -3,10 +3,6 @@
 # Directory where all coding projects will be cloned and stored.
 laptop_code_directory="$HOME/code"
 
-# Path to the user's optional custom configuration script. This file is executed before
-# commands are executed, allowing users to set or override variables and methods.
-laptop_custom_config_script="$HOME/.laptop/custom_config.sh"
-
 # Directory where a user's custom scripts are stored. Laptop will run and source 
 # files from this directory, make sure proper permissions are set. Laptop will always
 # require confirmation or a force flag before overwriting files in this directory.
