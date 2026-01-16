@@ -1073,7 +1073,7 @@ uninstall_brew_package() {
         fi
         
         log "Uninstalling brew package $package_name."
-        # brew uninstall "$package_name"
+        brew uninstall "$package_name"
     fi
 }
 
@@ -1133,7 +1133,7 @@ main() {
         configure_laptop_script
 
     elif [[ $uninstall_flag == true ]]; then
-        uninstall
+        uninstall $force_flag
     
     elif [[ $install_flag == true ]]; then
         install $force_flag
