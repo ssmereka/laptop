@@ -183,7 +183,7 @@ You can override Laptop's default configuration by setting environment variables
 | `LAPTOP_CUSTOM_CONFIG_SCRIPT` | `$HOME/.laptop/custom_config.sh` | Path to your optional custom configuration script |
 | `LAPTOP_CUSTOM_SCRIPT_DIRECTORY` | `$HOME/.laptop` | Directory where your custom scripts are stored |
 | `LAPTOP_CONFIG_DIRECTORY` | `$HOME/.config/laptop` | Directory where local Laptop configurations are stored |
-| `LAPTOP_LOCAL_REPOSITORY_DIRECTORY` | `$laptop_code_directory/ssmereka/laptop` | Directory where the local Laptop repository is cloned |
+| `LAPTOP_LOCAL_REPOSITORY_DIRECTORY` | `$HOME/code/ssmereka/laptop` | Directory where the local Laptop repository is cloned |
 | `LAPTOP_REMOTE_BASE_URL` | `https://raw.githubusercontent.com/ssmereka/laptop/refs/heads/main` | URL to the Laptop remote repository's root directory, for downloading files |
 | `LAPTOP_REMOTE_SSH_URL` | `git@github.com:ssmereka/laptop.git` | SSH URL for cloning the Laptop repository |
 | `LAPTOP_SECRET_ITEM_NAME_GIT` | `GitHub` | Name of the 1Password item containing Git configuration fields |
