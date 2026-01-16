@@ -22,7 +22,7 @@ laptop_config_directory="$HOME/.config/laptop"
 laptop_local_repository_directory="$laptop_code_directory/ssmereka/laptop"
 
 # A URL to the most recent Laptop code repository stored in GitHub. This should point
-# to the root directory so you can append file paths to navigate tofiles and folders
+# to the root directory so you can append file paths to navigate to files and folders
 # in the repository.
 laptop_remote_base_url="https://raw.githubusercontent.com/ssmereka/laptop/refs/heads/main"
 
