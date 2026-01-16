@@ -999,7 +999,7 @@ uninstall() {
     force_flag=${1:-false}
     
     # Set to the opposite of the "force_flag", because when force is true we do not require confirmation.
-    local skip_confirmation=$([[ $force_flag == true ]] && echo false || echo true)
+    local require_confirmation=$([[ $force_flag == true ]] && echo false || echo true)
 
     log_header "💻" "Unconfiguring your Laptop"
 
@@ -1008,28 +1008,28 @@ uninstall() {
 
     log_header "🧨" "Uninstalling Applications"
 
-    uninstall_brew_package "1password-cli" "$skip_confirmation"
+    uninstall_brew_package "1password-cli" "$require_confirmation"
     uninstall_brew_package "atuin" false
     uninstall_brew_package "awscli" false
-    uninstall_brew_package "curl" "$skip_confirmation"
-    uninstall_brew_package "coreutils" "$skip_confirmation"
-    uninstall_brew_package "gawk" "$skip_confirmation"
+    uninstall_brew_package "curl" "$require_confirmation"
+    uninstall_brew_package "coreutils" "$require_confirmation"
+    uninstall_brew_package "gawk" "$require_confirmation"
     uninstall_brew_package "gh" false
-    uninstall_brew_package "gmp" "$skip_confirmation"
-    uninstall_brew_package "gnupg" "$skip_confirmation"
-    uninstall_brew_package "libyaml" "$skip_confirmation"
+    uninstall_brew_package "gmp" "$require_confirmation"
+    uninstall_brew_package "gnupg" "$require_confirmation"
+    uninstall_brew_package "libyaml" "$require_confirmation"
     uninstall_brew_package "mise" false
-    uninstall_brew_package "openssl@3" "$skip_confirmation"
+    uninstall_brew_package "openssl@3" "$require_confirmation"
     uninstall_brew_package "postgresql" false
     uninstall_brew_package "rustup-init" false
-    uninstall_brew_package "visual-studio-code" "$skip_confirmation"
+    uninstall_brew_package "visual-studio-code" "$require_confirmation"
 
     uninstall_nvm
 
     log_header "🧨" "Removing Application Data"
 
     # Move the Laptop configuration directory to the $trash_directory for deletion on restart.
-    remove_laptop_configs "$skip_confirmation"
+    remove_laptop_configs "$require_confirmation"
 
     # Remove the mise data directory that contains the installed tools.
     rm -rf "$HOME/.local/share/mise"
