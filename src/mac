@@ -762,8 +762,8 @@ require_non_empty_string_variable() {
     fi
 }
 
-# Run a custom script located at the given path, if it exists. Verifies the script is 
-# executable and asks for confirmation before running it, unless confirmation is disabled.
+# Run a custom script located at the given path, if it exists, and ask for confirmation
+# before running it, unless confirmation is disabled.
 # Parameters:
 #   custom_script_path:  The path to the custom script to run.
 #   custom_script_name:  A friendly name for the script, used in log messages. Defaults to
