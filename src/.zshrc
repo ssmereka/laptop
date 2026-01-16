@@ -32,8 +32,8 @@ export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agen
 
 # Source the 1Password alias for the GitHub CLI so it uses the Personal Access Token from 
 # 1Password for authentication.
-if [ -f /Users/scott/.config/op/plugins.sh ]; then
-    source /Users/scott/.config/op/plugins.sh
+if [ -f "$HOME/.config/op/plugins.sh" ]; then
+    source "$HOME/.config/op/plugins.sh"
 fi
 
 # Enable autocomplete for Flux CD CLI, 
