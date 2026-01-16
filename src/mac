@@ -41,14 +41,6 @@ git_name=""
 git_ssh_public_key=""
 git_username=""
 
-
-
-
-
-################################################################################
-# Global Configurations
-################################################################################
-
 # Reapplies environment variables to override any configuration values made previously,
 # including those made in the user's custom configuration script.
 apply_environment_variables() {
@@ -290,7 +282,7 @@ configure_git() {
     sed -i '' "s|PATH_TO_GIT_ALLOWED_SIGNERS|${local_git_allowed_signers}|" "$local_gitconfig"
 
     # Symbolically link the .gitconfig to the proper location.
-    link_file "$local_gitconfig" "$HOME/.gitconfig"  
+    link_file "$local_gitconfig" "$HOME/.gitconfig"
 }
 
 # Configure Mise to use the Laptop configuration files.
@@ -400,17 +392,6 @@ copy_file() {
     else
         log "No changes to file at \"$destination_path\"."
     fi
-}
-
-# Remove local Laptop configurations by deleting the directory "$laptop_config_directory"
-# and clearing the 1Password GitHub CLI plugin configurations.
-clear_laptop_configs() {
-    log "Removing 1Password GitHub CLI configurations."
-    op plugin clear gh
-
-    log "Removing local Laptop configurations. Any changes made after the Laptop install will be" \
-        "removed."
-    trash "$laptop_config_directory"
 }
 
 # Get secrets from 1Password and store them in global variables. This is a separate method
@@ -734,6 +715,42 @@ log_secrets() {
     log "  git_username:       \"$git_username\"\n"
 }
 
+# Remove local Laptop configurations by deleting the directory "$laptop_config_directory"
+# and clearing the 1Password GitHub CLI plugin configurations.
+# Parameters:
+#   require_confirmation: A boolean indicating whether to prompt the user for confirmation
+#                         before removing the configurations. Defaults to true.
+remove_laptop_configs() {
+    require_confirmation="${1:-true}"
+
+    if [[ $require_confirmation == true ]]; then
+        local attention_text="The Laptop application configurations stored in \"$laptop_config_directory\""
+        attention_text+="\nwill be removed, including their symbolic links. Do you want to continue?"
+
+        log_attention "$attention_text"
+
+        if ! log_prompt_continue; then
+            log "User declined to remove local Laptop configurations at path \"$laptop_config_directory\"."
+            return
+        fi
+    fi
+
+    log "Removing 1Password GitHub CLI configurations."
+    op plugin clear gh
+
+    log "Removing symbolic links to Laptop configuration files."
+    unlink_file "$HOME/.config/1Password/ssh/agent.toml"
+    unlink_file "$HOME/.config/atuin/config.toml"
+    unlink_file "$HOME/.config/mise/config.toml"
+    unlink_file "$HOME/.default-gems"
+    unlink_file "$HOME/.gitconfig"
+    unlink_file "$HOME/.ssh/config"
+    unlink_file "$ZDOTDIR/.zshrc"
+
+    log "Removing local Laptop configurations at path \"$laptop_config_directory\"."
+    trash "$laptop_config_directory"
+}
+
 # Validate that a named variable exists and has a non-empty string value.
 require_non_empty_string_variable() {
     local var_name="$1"
@@ -756,19 +773,10 @@ require_non_empty_string_variable() {
 run_custom_script() {
     local custom_script_path="$1"
     local custom_script_name="${2:-custom script}"
-    local require_confirmation=${3:-true}
+    local require_confirmation="${3:-true}"
 
     if [ -f "$custom_script_path" ]; then
         log_header "🏃" "$custom_script_name"
-
-        # Verify custom script is executable.
-        if [ ! -x "$custom_script_path" ]; then
-            log_header "💡" "Found $custom_script_name at path \"$custom_script_path\" with invalid permissions."
-            log_error "Custom script at path \"$custom_script_path\" is not executable. " \
-                            "Please update the script's permissions.\n\n" \
-                            "\tTry: chmod +x $custom_script_path"
-            exit 1
-        fi
 
         # Confirm user wants to run the custom script, unless confirmation is disabled
         if [[ $require_confirmation == true ]]; then
@@ -816,6 +824,31 @@ trash() {
         mv "$path_to_trash" "$new_path"
     else
         log "Nothing exists at path \"$path_to_trash\"."
+    fi
+}
+
+# Remove a symbolic link from the destination, if it exists. This reverses
+# the operation of "link_file" method.
+# Parameters:
+#   destination_path: The symbolic link to be removed.
+unlink_file() {
+    local destination_path="$1"
+
+    # Validate argument was provided
+    if [[ -z "$destination_path" ]]; then
+        log_error "unlink_file() requires a valid \"destination_path\" argument."
+        exit 1
+    fi
+
+    # Remove trailing slashes for consistent behavior
+    destination_path="${destination_path%/}"
+
+    # Check if path exists and is a symbolic link
+    if [[ -L "$destination_path" ]]; then
+        log "Removing the symbolic link from \"$destination_path\""
+        rm "$destination_path"
+    else
+        log "No symbolic link exists at \"$destination_path\"."
     fi
 }
 
@@ -934,7 +967,7 @@ install() {
     if [[ $force_flag == true ]]; then
         # Delete all local configurations so that they will be recreated with the default values.
         # Effectively removing any local changes made after the script was initially run.
-        clear_laptop_configs
+        remove_laptop_configs false
     fi
 
     install_apple_developer_tools
@@ -960,51 +993,96 @@ install() {
 # Laptop Uninstall command will reverse the "Install" command. Removing anything
 # installed or configured by the Laptop script. The command is idempotent so you
 # can run it as many times as you like.
+# Parameters:
+#   force_flag: A boolean indicating whether to skip confirmation prompts.
 uninstall() {
-    # TODO: This method is incomplete at the moment.
+    force_flag=${1:-false}
+    
+    # Set to the opposite of the "force_flag", because when force is true we do not require confirmation.
+    local skip_confirmation=$([[ $force_flag == true ]] && echo false || echo true)
+
+    log_header "💻" "Unconfiguring your Laptop"
 
     # Run the user's custom pre-uninstall script.
     run_custom_script "$laptop_custom_pre_uninstall_script" "pre-uninstall script"
 
-    log_header "🔨" "Uninstalling Applications"
+    log_header "🧨" "Uninstalling Applications"
 
-    if brew list atuin &>/dev/null; then
-        brew uninstall atuin # https://atuin.sh
-    fi
+    uninstall_brew_package "1password-cli" "$skip_confirmation"
+    uninstall_brew_package "atuin" false
+    uninstall_brew_package "awscli" false
+    uninstall_brew_package "curl" "$skip_confirmation"
+    uninstall_brew_package "coreutils" "$skip_confirmation"
+    uninstall_brew_package "gawk" "$skip_confirmation"
+    uninstall_brew_package "gh" false
+    uninstall_brew_package "gmp" "$skip_confirmation"
+    uninstall_brew_package "gnupg" "$skip_confirmation"
+    uninstall_brew_package "libyaml" "$skip_confirmation"
+    uninstall_brew_package "mise" false
+    uninstall_brew_package "openssl@3" "$skip_confirmation"
+    uninstall_brew_package "postgresql" false
+    uninstall_brew_package "rustup-init" false
+    uninstall_brew_package "visual-studio-code" "$skip_confirmation"
 
     uninstall_nvm
 
-    if brew list mise &>/dev/null; then
-        brew uninstall mise # https://mise.jdx.dev
-    fi
+    log_header "🧨" "Removing Application Data"
 
-    # TODO: Ask if you want to uninstall these
-    # brew uninstall gh
-    # brew uninstall coreutils
-    # brew uninstall curl
-    # brew uninstall gawk
-    # brew uninstall gnupg # https://www.gnupg.org
-    # rustup-init
+    # Move the Laptop configuration directory to the $trash_directory for deletion on restart.
+    remove_laptop_configs "$skip_confirmation"
 
-    log_header "🗂️" "Removing Application Data"
+    # Remove the mise data directory that contains the installed tools.
+    rm -rf "$HOME/.local/share/mise"
 
-    # Remove Laptop data
-    rm -rf "$laptop_config_directory"
-
-    # Remove Atuin Application Data
-    rm -rf "$HOME/.config/atuin"
+    # Remove the 1Password SSH agent socket symbolic link.
+    unlink_file "$HOME/.1password/agent.sock"
 
     # Run the user's custom post-uninstall script.
     run_custom_script "$laptop_custom_post_uninstall_script" "post-uninstall script"
 
-    log "\n🎉 Done. Restart your shell to complete the uninstall."
+    log_header "🎉" "Uninstall is complete"
+
+    local attention_text="Close this terminal session and start a new one to use the updated configurations.\n"
+    attention_text+="\nIf you want to remove the Laptop local code repository, run the following command:\n"
+    attention_text+=$(log_command "rm -rf \"$laptop_local_repository_directory\"")
+    
+    log_attention "$attention_text"
+}
+
+# Uninstall a Homebrew package by name. Prompts the user for confirmation
+# before uninstalling, unless confirmation is disabled.
+# Parameters:
+#   package_name: The name of the Homebrew package to uninstall.
+#   require_confirmation: A boolean indicating whether to prompt the user for confirmation
+#                         before uninstalling the package. Defaults to true.
+uninstall_brew_package() {
+    local package_name="$1"
+    local require_confirmation=${2:-true}
+
+    # Check if the package is installed
+    if brew list "$package_name" &>/dev/null; then
+        
+        # Check if confirmation is required
+        if [[ $require_confirmation == true ]]; then
+            log_attention "Uninstall brew package \"$package_name\"?"
+
+            if ! log_prompt "Uninstall? [Y/n]"; then
+                log "User declined to uninstall brew package \"$package_name\"."
+                return 0
+            fi
+        fi
+        
+        log "Uninstalling brew package $package_name."
+        # brew uninstall "$package_name"
+    fi
 }
 
 # Removes Node Version Manager (NVM), if it is installed.
 uninstall_nvm() {
     local nvm_dir="${NVM_DIR:-${XDG_CONFIG_HOME:-$HOME/.nvm}}"
+
     if [ -d "$nvm_dir" ]; then
-        echo "\n💥 Uninstalling Node Version Manager (NVM).\n"
+        log "Uninstalling Node Version Manager (NVM)."
         command -v nvm >/dev/null && nvm unload
         rm -rf "$nvm_dir"
     fi

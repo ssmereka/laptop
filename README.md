@@ -57,6 +57,17 @@ Laptop will configure your computer so it can communicate with external services
     ```
 
 
+### Available Commands
+The `mac` Laptop script has a few commands available to help with setup or teardown. These are the available commands:
+
+| Command | Example Usage | Description |
+| ------- | ------------- | ----------- |
+| `install` | `./mac install` | Install and configure your computer for development (default command if none specified) |
+| `install --force` | `./mac install --force` | Remove existing local configurations and then run the install command. |
+| `configure` | `./mac configure` | Create a local custom configuration file that you can use to customize Laptop's settings. |
+| `uninstall` | `./mac uninstall` | Uninstall all applications and remove all configurations applied by Laptop. |
+| `uninstall --force` | `./mac uninstall --force` | Run the uninstall command without any confirmation prompts. |
+
 
 ### Using Laptop
 
@@ -93,6 +104,7 @@ Want the latest updates? Just re-run the [mac] script again using `curl` or the 
 ```bash
 lt-update
 ```
+
 
 ## What does Laptop do?
 
@@ -173,6 +185,7 @@ You can add the following files to the `~/.config/laptop` directory:
 
 * `.zshrc_*` - Files with the `.zshrc_` prefix will be added to the end of the `.zshrc` file and loaded in each session.
 
+
 ### Environment Variables
 
 You can override Laptop's default configuration by setting environment variables before running the script. These variables allow you to customize paths, repository locations, and 1Password secret references without modifying the script itself. Environment variables will override both default values and values set in the user's custom configuration script.
@@ -204,6 +217,7 @@ LAPTOP_CODE_DIRECTORY="$HOME/projects" curl -o- https://raw.githubusercontent.co
 LAPTOP_SECRET_ITEM_NAME_GIT="Work GitHub" ./mac install
 ```
 
+
 ### Custom Install Script
 
 You can extend the Laptop install or uninstall by adding `zsh` scripts to the custom config directory. You may want to do this to install additional tools or tweak configurations per machine.
@@ -215,7 +229,7 @@ By default this directory is at path `~/.laptop/`. Laptop will automatically run
 * `custom_pre_uninstall.sh` - Run before a Laptop uninstall command is executed.
 * `custom_post_uninstall.sh` - Run after a Laptop uninstall command is finished executing.
 
-Custom scripts will be "sourced" so they run in the same shell as the Laptop script. As if they were all in the same file. This gives you access to all the variables and methods in the Laptop script. Use caution when assigning global variables and methods to avoid collisions. Also make sure your scripts are idempotent and have the correct permissions.
+Custom scripts will be "sourced" so they run in the same shell as the Laptop script, as if they were all in the same file. This gives you access to all the variables and methods in the Laptop script. Use caution when assigning global variables and methods to avoid collisions, and make sure your scripts are idempotent and readable by the user running Laptop.
 
 Here is an example `custom_post_install.sh` script:
 
