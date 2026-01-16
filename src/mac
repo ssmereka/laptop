@@ -840,7 +840,7 @@ update_laptop_repository() {
         attention_text+="N:  Stash the local changes, then pull the latest from the remote Laptop"
         attention_text+="\n    repository. Reapply the local changes with \"git stash pop\" command."
         
-        # Ask if how they want to proceed.
+        # Ask how they want to proceed.
         local attention_prompt="Continue without pulling the latest changes? [Y/n]"
         
         log_attention "$attention_text"
