@@ -259,12 +259,12 @@ configure_git() {
     fi
 
     # Create a local Git allowed signers file from the Laptop template.
-    local_git_allowed_signers="$laptop_config_directory/.git-allowed-signers"
+    local local_git_allowed_signers="$laptop_config_directory/.git-allowed-signers"
     copy_file "$laptop_src_location/.git-allowed-signers" "$local_git_allowed_signers"
     chmod 600 "$local_git_allowed_signers"
 
     # Create a local Git configuration file from the Laptop template.
-    local_gitconfig="$laptop_config_directory/.gitconfig"
+    local local_gitconfig="$laptop_config_directory/.gitconfig"
     copy_file "$laptop_src_location/.gitconfig" "$local_gitconfig"
 
     # Replace the allowed signers template variables using the information from 1Password.
@@ -721,7 +721,7 @@ log_secrets() {
 #   require_confirmation: A boolean indicating whether to prompt the user for confirmation
 #                         before removing the configurations. Defaults to true.
 remove_laptop_configs() {
-    require_confirmation="${1:-true}"
+    local require_confirmation="${1:-true}"
 
     if [[ $require_confirmation == true ]]; then
         local attention_text="The Laptop application configurations stored in \"$laptop_config_directory\""
@@ -943,7 +943,7 @@ configure_laptop_script() {
 # Parameters:
 #   force_flag: A boolean indicating whether to force reinstallation of all configurations.
 install() {
-    force_flag="$1"
+    local force_flag="$1"
 
     log_header "💻" "Configuring your Laptop"
 
@@ -996,7 +996,7 @@ install() {
 # Parameters:
 #   force_flag: A boolean indicating whether to skip confirmation prompts.
 uninstall() {
-    force_flag=${1:-false}
+    local force_flag=${1:-false}
     
     # Set to the opposite of the "force_flag", because when force is true we do not require confirmation.
     local require_confirmation=$([[ $force_flag == true ]] && echo false || echo true)
@@ -1095,12 +1095,12 @@ uninstall_nvm() {
 
 # Interpret commandline arguments and run the appropriate commands.
 main() {
-    configure_flag=false
-    install_flag=false
-    uninstall_flag=false
-    force_flag=false
+    local configure_flag=false
+    local install_flag=false
+    local uninstall_flag=false
+    local force_flag=false
 
-    additional_args=()
+    local additional_args=()
 
     # Parse commandline arguments
     while [[ $# -gt 0 ]]; do
