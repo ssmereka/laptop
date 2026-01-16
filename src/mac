@@ -97,7 +97,7 @@ set_global_configurations() {
     laptop_local_repository_directory="${LAPTOP_LOCAL_REPOSITORY_DIRECTORY:-$laptop_code_directory/ssmereka/laptop}"
 
     # A URL to the most recent Laptop code repository stored in GitHub. This should point
-    # to the root directory so you can append file paths to navigate tofiles and folders
+    # to the root directory so you can append file paths to navigate to files and folders
     # in the repository.
     laptop_remote_base_url="${LAPTOP_REMOTE_BASE_URL:-https://raw.githubusercontent.com/ssmereka/laptop/refs/heads/main}"
 
