@@ -135,7 +135,7 @@ set_global_configurations() {
 
 
     # Run the user's custom configuration script to override any variables.
-    run_custom_script "$laptop_custom_config_script" "custom configuration script" false
+    run_custom_script "$laptop_custom_config_script" "custom configuration script"
 
     # Validate that all required variables are set to non-empty string values.
     require_non_empty_string_variable "laptop_code_directory"
@@ -525,7 +525,7 @@ install_or_update_homebrew() {
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
         # Add Homebrew to the user's PATH, if it's not already there.
-        if [[ ":$PATH:" == *":$HOMEBREW_PREFIX/bin:"* ]]; then
+        if [[ ":$PATH:" != *":$HOMEBREW_PREFIX/bin:"* ]]; then
             export PATH=$HOMEBREW_PREFIX/bin:$PATH
         fi
     else
@@ -759,6 +759,8 @@ run_custom_script() {
     local require_confirmation=${3:-true}
 
     if [ -f "$custom_script_path" ]; then
+        log_header "🏃" "$custom_script_name"
+
         # Verify custom script is executable.
         if [ ! -x "$custom_script_path" ]; then
             log_header "💡" "Found $custom_script_name at path \"$custom_script_path\" with invalid permissions."
@@ -770,13 +772,13 @@ run_custom_script() {
 
         # Confirm user wants to run the custom script, unless confirmation is disabled
         if [[ $require_confirmation == true ]]; then
-            log_header "💡" "Found $custom_script_name at path \"$custom_script_path\"."
-            log "🤔 Would you like to run it?\n\n" \
-                "> Press any key to run this file...\n"
-            read -n 1
+            log_attention "Found $custom_script_name at path \"$custom_script_path\"."
+            if ! log_prompt "Would you like to run this file? [Y/n]"; then
+                log "User declined to run the $custom_script_name."
+                return
+            fi
         fi
 
-        log_header "🏃" "$custom_script_name"
         log "Running the $custom_script_name at path \"$custom_script_path\""
 
         # Execute the script in the current shell environment.
