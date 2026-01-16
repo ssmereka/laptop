@@ -44,7 +44,7 @@ Laptop will configure your computer so it can communicate with external services
 
 1. Review the [mac] script. Avoid running a script you haven't read!
 
-2. **Optionally**, customize the [script's configurations].
+2. **Optionally**, customize the script's [configurations].
 
     ```bash
     curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh -s -- configure
@@ -273,7 +273,7 @@ EOF
 [Ruby]: https://www.ruby-lang.org/en/
 [Ruby on Rails]: https://rubyonrails.org
 [Rust]: https://rustup.rs
-[script's configurations]: https://github.com/ssmereka/laptop/blob/main/examples/custom_config.sh
+[configurations]: https://github.com/ssmereka/laptop/blob/main/examples/custom_config.sh
 [Signing SSH Key in GitHub]: https://developer.1password.com/docs/ssh/git-commit-signing
 [SSH Key in 1Password]: https://developer.1password.com/docs/ssh/get-started#step-1-generate-an-ssh-key
 [Visual Studio Code]: https://code.visualstudio.com
