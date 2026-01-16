@@ -173,6 +173,36 @@ You can add the following files to the `~/.config/laptop` directory:
 
 * `.zshrc_*` - Files with the `.zshrc_` prefix will be added to the end of the `.zshrc` file and loaded in each session.
 
+### Environment Variables
+
+You can override Laptop's default configuration by setting environment variables before running the script. These variables allow you to customize paths, repository locations, and 1Password secret references without modifying the script itself. Environment variables will override both default values and values set in the user's custom configuration script.
+
+| Environment Variable | Default Value | Description |
+| -------------------- | ------------- | ----------- |
+| `LAPTOP_CODE_DIRECTORY` | `$HOME/code` | Directory where all coding projects will be cloned and stored |
+| `LAPTOP_CUSTOM_CONFIG_SCRIPT` | `$HOME/.laptop/custom_config.sh` | Path to your optional custom configuration script |
+| `LAPTOP_CUSTOM_SCRIPT_DIRECTORY` | `$HOME/.laptop` | Directory where your custom scripts are stored |
+| `LAPTOP_CONFIG_DIRECTORY` | `$HOME/.config/laptop` | Directory where local Laptop configurations are stored |
+| `LAPTOP_LOCAL_REPOSITORY_DIRECTORY` | `$laptop_code_directory/ssmereka/laptop` | Directory where the local Laptop repository is cloned |
+| `LAPTOP_REMOTE_BASE_URL` | `https://raw.githubusercontent.com/ssmereka/laptop/refs/heads/main` | URL to the Laptop remote repository's root directory, for downloading files |
+| `LAPTOP_REMOTE_SSH_URL` | `git@github.com:ssmereka/laptop.git` | SSH URL for cloning the Laptop repository |
+| `LAPTOP_SECRET_ITEM_NAME_GIT` | `GitHub` | Name of the 1Password item containing Git configuration fields |
+| `LAPTOP_SECRET_FIELD_NAME_GIT_EMAIL` | `GitHub Email` | Name of the 1Password field containing your Git email |
+| `LAPTOP_SECRET_FIELD_NAME_GIT_NAME` | `Name` | Name of the 1Password field containing your Git name |
+| `LAPTOP_SECRET_FIELD_NAME_GIT_USERNAME` | `GitHub Username` | Name of the 1Password field containing your Git username |
+| `LAPTOP_SECRET_ITEM_NAME_SSH_KEY` | `GitHub SSH Key` | Name of the 1Password item containing your SSH key |
+| `LAPTOP_SECRET_FIELD_NAME_SSH_KEY_PUBLIC` | `public key` | Name of the 1Password field containing your public SSH key |
+| `LAPTOP_TRASH_DIRECTORY` | `/tmp/Laptop` | Directory where deleted files are moved temporarily, mac will delete these on a reboot |
+
+**Example usage:**
+
+```bash
+# Install Laptop with a custom code directory
+LAPTOP_CODE_DIRECTORY="$HOME/projects" curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh
+
+# Use a different 1Password item for Git credentials
+LAPTOP_SECRET_ITEM_NAME_GIT="Work GitHub" ./mac install
+```
 
 ### Custom Install Script
 
