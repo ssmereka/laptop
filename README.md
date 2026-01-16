@@ -50,7 +50,7 @@ Laptop will configure your computer so it can communicate with external services
     curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh -s -- configure
     ```
 
-3. Run the [mac] script. This will clone the Laptop git project to the directory `~/code/laptop` and setup your computer.
+3. Run the [mac] script. This will clone the Laptop git project to the directory `~/code/ssmereka/laptop` and setup your computer.
 
     ```bash
     curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh
