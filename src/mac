@@ -72,7 +72,7 @@ apply_environment_variables() {
 # default value which can be overridden by an environment variable. These are
 # then passed into the user's custom configuration script where they can adjust
 # variables as needed. Environment variables are again used to override any
-# user changes as they take precidence over all other configuration sources.
+# user changes as they take precedence over all other configuration sources.
 # After global configurations are set, derived paths variables are set.
 set_global_configurations() {
     # Directory where all coding projects will be cloned and stored.
