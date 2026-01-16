@@ -208,7 +208,7 @@ LAPTOP_SECRET_ITEM_NAME_GIT="Work GitHub" ./mac install
 
 You can extend the Laptop install or uninstall by adding `zsh` scripts to the custom config directory. You may want to do this to install additional tools or tweak configurations per machine.
 
-By default this is directory is at path `~/.laptop/`. Laptop will automatically run the following scripts, if they exist in that directory:
+By default this directory is at path `~/.laptop/`. Laptop will automatically run the following scripts, if they exist in that directory:
 
 * `custom_pre_install.sh` - Run before a Laptop install command is executed.
 * `custom_post_install.sh` - Run after a Laptop install command is finished executing.
