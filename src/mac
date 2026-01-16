@@ -1,191 +1,270 @@
 #!/bin/zsh
 
+# LAPTOP
+# Make with ❤️ by Scott Smereka
 
-# Global Static Variables
 
-# Directory where all coding projects will be cloned and stored.
-code_directory="$HOME/code"
+################################################################################
+# Global Configurations
+################################################################################
 
-# Directory where a local copy of the Laptop repository will be cloned and stored.
-laptop_repo_directory="$code_directory/ssmereka/laptop"
+# The following variables are user-configurable using the custom_config.sh script.
+# These values are set and defined in the "set_global_configurations" method.
+laptop_code_directory=""
+laptop_config_directory=""
+laptop_custom_script_directory=""
+laptop_local_repository_directory=""
+laptop_remote_base_url=""
+laptop_remote_ssh_url=""
 
-# Directory where the Laptop source code is stored.
-laptop_src_directory="$laptop_repo_directory/src"
+laptop_secret_item_name_git=""
+laptop_secret_field_name_git_email=""
+laptop_secret_field_name_git_name=""
+laptop_secret_field_name_git_username=""
+laptop_secret_item_name_ssh_key=""
+laptop_secret_field_name_ssh_key_public=""
 
-# Directory where local Laptop configurations are stored.
-laptop_local_directory="$HOME/.config/laptop"
+laptop_trash_directory=""
 
-# Directory where a user's custom configurations and scripts that are specific to the current
-# computer. Items in this folder will not be modified by Laptop, but it will run and source 
-# files from this directory.
-laptop_custom_directory="$HOME/.laptop"
+# The following variables are generated based on the global configurations in the 
+# "set_global_configurations" method.
+laptop_custom_config_script=""
+laptop_custom_pre_install_script=""
+laptop_custom_post_install_script=""
+laptop_custom_pre_uninstall_script=""
+laptop_custom_post_uninstall_script=""
 
-# Directory where the user's custom install script is stored.
-laptop_custom_install_script="$laptop_custom_directory/custom_install.sh"
-
-# Base URL for the remote Laptop repository.
-remote_laptop_base_url="https://raw.githubusercontent.com/ssmereka/laptop/refs/heads/main"
-
-# Remote URL of directory where the Laptop source code is stored.
-remote_laptop_src_directory="$remote_laptop_base_url/src"
-
-# Prompt to inform the user that there are unsaved changes in the Laptop git repository.
-unsaved_changes_prompt='🚨 Attention: Cannot pull the latest changes from the remote Laptop
-              repository, because there are local changes or you are not
-              on the "main" branch.
-
-Y:  Proceed without the latest changes from the remote Laptop repository.
-
-    OR
-
-N:  Stash the local changes, then pull the latest from the remote Laptop repository.
-    Reapply the local changes with command: "cd '$laptop_repo_directory' && git stash pop"
-
-'
-
-# Global Secrets
-
-# The name of the 1Password "item" where the Git configurations exist, including email, name, and
-# username.
-item_name_git="GitHub"
-# Name of the 1Password "field" in the item "item_name_git" that contains the email address that
-# should be used by the Git client.
-field_name_git_email="email"
-# Name of the 1Password "field" in the item "item_name_git" that contains the name that
-# should be used by the Git client.
-field_name_git_name="name"
-# Name of the 1Password "field" in the item "item_name_git" that contains the git username that
-# should be used by the Git client.
-field_name_git_username="username"
-
-# The name of the 1Password "item" where the Git SSH Key configurations exist. This key should be
-# added to your remote Git repository, eg. GitHub.
-item_name_ssh_key="GitHub SSH Key"
-# Name of the 1Password "field" in the item "item_name_ssh_key" that contains the public ssh key
-# used by your remote Git repository, eg. GitHub.
-field_name_ssh_key_public="public key"
-
-# Variables to store the secrets obtained from 1Password and injected into configurations.
+# The following variables are used to store secrets obtained from 1Password and 
+# injected into configurations during the script execution.
 git_email=""
 git_name=""
 git_ssh_public_key=""
 git_username=""
 
-
-# Lifecycle Methods
-
-# Display an error message
-error() {
-    print -- "\n🔴 [Error]: "$*"\n"
+# Reapplies environment variables to override any configuration values made previously,
+# including those made in the user's custom configuration script.
+apply_environment_variables() {
+    laptop_code_directory="${LAPTOP_CODE_DIRECTORY:-$laptop_code_directory}"
+    laptop_custom_config_script="${LAPTOP_CUSTOM_CONFIG_SCRIPT:-$laptop_custom_config_script}"
+    laptop_custom_script_directory="${LAPTOP_CUSTOM_SCRIPT_DIRECTORY:-$laptop_custom_script_directory}"
+    laptop_config_directory="${LAPTOP_CONFIG_DIRECTORY:-$laptop_config_directory}"
+    laptop_local_repository_directory="${LAPTOP_LOCAL_REPOSITORY_DIRECTORY:-$laptop_local_repository_directory}"
+    laptop_remote_base_url="${LAPTOP_REMOTE_BASE_URL:-$laptop_remote_base_url}"
+    laptop_remote_ssh_url="${LAPTOP_REMOTE_SSH_URL:-$laptop_remote_ssh_url}"
+    laptop_secret_item_name_git="${LAPTOP_SECRET_ITEM_NAME_GIT:-$laptop_secret_item_name_git}"
+    laptop_secret_field_name_git_email="${LAPTOP_SECRET_FIELD_NAME_GIT_EMAIL:-$laptop_secret_field_name_git_email}"
+    laptop_secret_field_name_git_name="${LAPTOP_SECRET_FIELD_NAME_GIT_NAME:-$laptop_secret_field_name_git_name}"
+    laptop_secret_field_name_git_username="${LAPTOP_SECRET_FIELD_NAME_GIT_USERNAME:-$laptop_secret_field_name_git_username}"
+    laptop_secret_item_name_ssh_key="${LAPTOP_SECRET_ITEM_NAME_SSH_KEY:-$laptop_secret_item_name_ssh_key}"
+    laptop_secret_field_name_ssh_key_public="${LAPTOP_SECRET_FIELD_NAME_SSH_KEY_PUBLIC:-$laptop_secret_field_name_ssh_key_public}"
+    laptop_trash_directory="${LAPTOP_TRASH_DIRECTORY:-$laptop_trash_directory}"
 }
 
-# Handle error messages by printing them and exiting with a failure status.
-exit_with_error() {
-    error "$*"
-    exit 1
+# Sets the value for each global configuration variable. Variables are given a 
+# default value which can be overridden by an environment variable. These are
+# then passed into the user's custom configuration script where they can adjust
+# variables as needed. Environment variables are again used to override any
+# user changes as they take precedence over all other configuration sources.
+# After global configurations are set, derived paths variables are set.
+set_global_configurations() {
+    # Directory where all coding projects will be cloned and stored.
+    laptop_code_directory="${LAPTOP_CODE_DIRECTORY:-$HOME/code}"
+
+    # Path to the user's optional custom configuration script. This file is executed before
+    # commands are executed, allowing users to set or override variables and methods.
+    laptop_custom_config_script="${LAPTOP_CUSTOM_CONFIG_SCRIPT:-$HOME/.laptop/custom_config.sh}"
+
+    # Directory where a user's custom scripts are stored. Laptop will run and source 
+    # files from this directory, make sure proper permissions are set. Laptop will always
+    # require confirmation or a force flag before overwriting files in this directory.
+    laptop_custom_script_directory="${LAPTOP_CUSTOM_SCRIPT_DIRECTORY:-$HOME/.laptop}"
+
+    # Directory where local Laptop configurations are stored. Laptop will create files
+    # in this directory and link them to appropriate locations. Users can modify these
+    # files as needed. Laptop will always require confirmation or a force flag before
+    # overwriting files in this directory.
+    laptop_config_directory="${LAPTOP_CONFIG_DIRECTORY:-$HOME/.config/laptop}"
+
+    # Directory where a local copy of the Laptop repository will be cloned and stored.
+    laptop_local_repository_directory="${LAPTOP_LOCAL_REPOSITORY_DIRECTORY:-$laptop_code_directory/ssmereka/laptop}"
+
+    # A URL to the most recent Laptop code repository stored in GitHub. This should point
+    # to the root directory so you can append file paths to navigate to files and folders
+    # in the repository.
+    laptop_remote_base_url="${LAPTOP_REMOTE_BASE_URL:-https://raw.githubusercontent.com/ssmereka/laptop/refs/heads/main}"
+
+    # The URL used to clone the remote Laptop repository via SSH.
+    laptop_remote_ssh_url="${LAPTOP_REMOTE_SSH_URL:-git@github.com:ssmereka/laptop.git}"
+
+    # The name of the 1Password "item" where the Git configurations exist, including email, name, and
+    # username.
+    laptop_secret_item_name_git="${LAPTOP_SECRET_ITEM_NAME_GIT:-GitHub}"
+
+    # Name of the 1Password "field" in the item "laptop_secret_item_name_git" that contains the email address that
+    # should be used by the Git client.
+    laptop_secret_field_name_git_email="${LAPTOP_SECRET_FIELD_NAME_GIT_EMAIL:-GitHub Email}"
+
+    # Name of the 1Password "field" in the item "laptop_secret_item_name_git" that contains the name that
+    # should be used by the Git client.
+    laptop_secret_field_name_git_name="${LAPTOP_SECRET_FIELD_NAME_GIT_NAME:-Name}"
+    
+    # Name of the 1Password "field" in the item "laptop_secret_item_name_git" that contains the git username that
+    # should be used by the Git client.
+    laptop_secret_field_name_git_username="${LAPTOP_SECRET_FIELD_NAME_GIT_USERNAME:-GitHub Username}"
+
+    # The name of the 1Password "item" where the Git SSH Key configurations exist. This key should be
+    # added to your remote Git repository, eg. GitHub.
+    laptop_secret_item_name_ssh_key="${LAPTOP_SECRET_ITEM_NAME_SSH_KEY:-GitHub SSH Key}"
+
+    # Name of the 1Password "field" in the item "laptop_secret_item_name_ssh_key" that contains the public ssh key
+    # used by your remote Git repository, eg. GitHub.
+    laptop_secret_field_name_ssh_key_public="${LAPTOP_SECRET_FIELD_NAME_SSH_KEY_PUBLIC:-public key}"
+
+    # Directory where Laptop files or configurations are moved when they should be deleted.
+    # Enables user to recover files if needed and they will be automatically removed when the
+    # computer is restarted.
+    laptop_trash_directory="${LAPTOP_TRASH_DIRECTORY:-/tmp/Laptop}"
+
+
+    # Run the user's custom configuration script to override any variables.
+    run_custom_script "$laptop_custom_config_script" "custom configuration script"
+
+    # Validate that all required variables are set to non-empty string values.
+    require_non_empty_string_variable "laptop_code_directory"
+    require_non_empty_string_variable "laptop_custom_config_script"
+    require_non_empty_string_variable "laptop_custom_script_directory"
+    require_non_empty_string_variable "laptop_config_directory"
+    require_non_empty_string_variable "laptop_local_repository_directory"
+    require_non_empty_string_variable "laptop_remote_base_url"
+    require_non_empty_string_variable "laptop_remote_ssh_url"
+    require_non_empty_string_variable "laptop_secret_item_name_git"
+    require_non_empty_string_variable "laptop_secret_field_name_git_email"
+    require_non_empty_string_variable "laptop_secret_field_name_git_name"
+    require_non_empty_string_variable "laptop_secret_field_name_git_username"
+    require_non_empty_string_variable "laptop_secret_item_name_ssh_key"
+    require_non_empty_string_variable "laptop_secret_field_name_ssh_key_public"
+    require_non_empty_string_variable "laptop_trash_directory"
+
+    # Environment variables take precedence over configuration files and default values.
+    # Reapply the environment variables after loading the user's script.
+    apply_environment_variables
+
+    # The following paths can be derived from the global configuration variables.
+
+    # Path to the user's optional custom pre install script. This file is executed before
+    # the install command.
+    laptop_custom_pre_install_script="$laptop_custom_script_directory/custom_pre_install.sh"
+
+    # Path to the user's optional custom post install script. This file is executed after
+    # the install command.
+    laptop_custom_post_install_script="$laptop_custom_script_directory/custom_post_install.sh"
+
+    # Path to the user's optional custom pre uninstall script. This file is executed before
+    # the uninstall command.
+    laptop_custom_pre_uninstall_script="$laptop_custom_script_directory/custom_pre_uninstall.sh"
+
+    # Path to the user's optional custom post uninstall script. This file is executed after
+    # the uninstall command.
+    laptop_custom_post_uninstall_script="$laptop_custom_script_directory/custom_post_uninstall.sh"
 }
 
-# Display a message to the user.
-log() {
-    print -- $*
-}
 
-# Display a distinct header message to the user.
-log_header() {
-    print -- "\n→ "$*"\n"
-}
-
-log_title() {
-    print -- "\n"$*"\n"
-}
-
-
-# Dynamic Global Variables
-
-# Get the processor architecture from the operating system. Where "x86_64" 
-# is an Intel processor and "arm64" is an Apple Silicon processor.
-processor_architecture="$(uname -m)"
-
-# Set variables based on the processor architecture.
-# Exit the script if the processor architecture is not supported.
-if [ "$processor_architecture" = "arm64" ]; then
-    HOMEBREW_PREFIX="/opt/homebrew"
-elif [ "$processor_architecture" = "x86_64" ]; then
-    HOMEBREW_PREFIX="/usr/local"
-else
-    exit_with_error "Unsupported processor architecture: $processor_architecture"
-fi
-
-
+################################################################################
 # Methods
+################################################################################
 
-# Removes all secrets from memory.
+# Clears any variables that may be storing secrets pulled from 1Password.
 clear_secrets() {
-    log_header "🔐 Clearing Secrets from Memory"
+    log_header "🔒" "Clear Secrets from Memory"
+    log "Erasing secret variables \"git_email\", \"git_name\", \"git_ssh_public_key\", and \"git_username\" from memory."
+
     unset git_email
     unset git_name
     unset git_ssh_public_key
     unset git_username
 }
 
-# Clone the Laptop repository locally, if it doesn't exist locally
+# Clone the remote Laptop repository locally using SSH, if it doesn't already exist.
 clone_laptop_repository() {
-    if [[ ! -d "$laptop_repo_directory" ]]; then
-        mkdir -p $laptop_repo_directory
-        git clone git@github.com:ssmereka/laptop.git "$laptop_repo_directory"
+    if [[ ! -d "$laptop_local_repository_directory" ]]; then
+        mkdir -p "$laptop_local_repository_directory"
+        git clone "$laptop_remote_ssh_url" "$laptop_local_repository_directory"
 
-        if [[ ! -f "$laptop_src_directory/mac" ]]; then
-            exit_with_error "Failed to clone Laptop to \"$laptop_repo_directory\".\n\n\tCommand:  " \
-                            "git clone git@github.com:ssmereka/laptop.git \"$laptop_repo_directory\""
+        if [[ ! -f "$laptop_local_repository_directory/src/mac" ]]; then
+            local error_text="Failed to clone Laptop from \"$laptop_remote_ssh_url\" to \"$laptop_local_repository_directory\".\n"
+            error_text+=$(log_command "git clone \"$laptop_remote_ssh_url\" \"$laptop_local_repository_directory\"")
+            log_error "$error_text"
+            exit 1
         fi
     fi
 }
 
-
-# Configure the 1Password GitHub CLI plugin so that it uses the Personal Access Token from
-# 1Password for authentication.
+# Configure the 1Password GitHub CLI plugin so that it uses the Personal Access Token
+# from 1Password for authentication.
 configure_gh() {
-    log_header "😸 Configuring GitHub CLI"
+    log_header "😸" "Configuring GitHub CLI"
 
-    if [[ ! -f "$HOME/.config/op/plugins/gh.json" ]]; then
-        log "Signing into 1Password to retrieve the GitHub Personal Access Token"
-        op signin
+    local github_plugin_config_path="$HOME/.config/op/plugins/gh.json"
+
+    if [[ ! -f "$github_plugin_config_path" ]]; then
+        local attention_text="Initializing the 1Password GitHub CLI Plugin. Follow these steps:"
+        attention_text+="\n"
+        attention_text+="\n\t1. Make sure you have a valid GitHub Personal Access Token stored in 1Password in a field named \"token\"."
+        attention_text+="\n\t2. When asked to locate your token, navigate to the name of the 1Password item where your Personal Access Token was stored."
+        attention_text+="\n\t3. When asked to configure when the chosen credentials will be used, select \"Use as global default on my system.\""
+        attention_text+="\n"
+        attention_text+="\n\tMore info can be found here:"
+        attention_text+="\n\thttps://developer.1password.com/docs/cli/shell-plugins/github/#step-2-configure-your-default-credentials"
+
+        log_attention "$attention_text"
         
-        log "\n🚨 Initializing the 1Password GitHub Plugin. Follow these steps:\n\n" \
-            "  1. When asked to locate your token, navigate to the name of the 1Password item where your Personal Access Token was stored.\n" \
-            "  2. When asked to configure when the chosen credentials will be used, select \"Use as global default on my system.\"\n\n" \
-            "More info can be found here:\n" \
-            "https://developer.1password.com/docs/cli/shell-plugins/github/#step-2-configure-your-default-credentials\n\n" \
-            "> Press any key to continue..."
-        read -n 1
-        
-        op plugin init gh
+        if log_prompt_continue; then
+            log_attention "Requesting Unlock of 1Password to configure the GitHub plugin."
+            op signin
+            
+            log "Initializing the 1Password GitHub CLI plugin."
+            op plugin init gh
+        else
+            log_error "The 1Password GitHub CLI plugin configuration was cancelled by the user."
+            exit 1
+        fi
     fi
 
     log "Verifying 1Password GitHub plugin"
     op plugin inspect gh
+
+    local attention_text="Check if the verification was successful.\n"
+    attention_text+="\n\tIf you encounter an issue try deleting the configuration at \"$github_plugin_config_path\", then try again."
+
+    log_attention "$attention_text"
+
+    if ! log_prompt_continue; then
+        log_error "The 1Password GitHub CLI plugin configuration was cancelled by the user."
+        exit 1
+    fi
 }
 
 # Create a Git configuration file with the user's GitHub information from 1Password.
 # Parameters:
 #   laptop_src_location: A local directory path or a remote URL for the Laptop source code
-#                        directory. Defaults to the "laptop_src_directory" variable.
+#                        directory. Defaults to the "$laptop_local_repository_directory/src" variable.
 configure_git() {
-    laptop_src_location=${1:-"$laptop_src_directory"}
+    local laptop_src_location=${1:-"$laptop_local_repository_directory/src"}
 
-    log_header "🔧 Configuring Git"
+    log_header "🔧" "Configuring Git"
 
+    # Check if secrets are available to avoid unnecessary prompts to the user.
     if [[ -z "$git_email" || -z "$git_name" || -z "$git_username" || -z "$git_ssh_public_key" ]]; then
         get_secrets
     fi
 
     # Create a local Git allowed signers file from the Laptop template.
-    local_git_allowed_signers="$laptop_local_directory/.git-allowed-signers"
+    local local_git_allowed_signers="$laptop_config_directory/.git-allowed-signers"
     copy_file "$laptop_src_location/.git-allowed-signers" "$local_git_allowed_signers"
     chmod 600 "$local_git_allowed_signers"
 
     # Create a local Git configuration file from the Laptop template.
-    local_gitconfig="$laptop_local_directory/.gitconfig"
+    local local_gitconfig="$laptop_config_directory/.gitconfig"
     copy_file "$laptop_src_location/.gitconfig" "$local_gitconfig"
 
     # Replace the allowed signers template variables using the information from 1Password.
@@ -202,28 +281,26 @@ configure_git() {
     # configured allowed signers file.
     sed -i '' "s|PATH_TO_GIT_ALLOWED_SIGNERS|${local_git_allowed_signers}|" "$local_gitconfig"
 
-    clear_secrets
-
     # Symbolically link the .gitconfig to the proper location.
-    link_file "$local_gitconfig" "$HOME/.gitconfig"  
+    link_file "$local_gitconfig" "$HOME/.gitconfig"
 }
 
 # Configure Mise to use the Laptop configuration files.
 # Parameters:
 #   laptop_src_location: A local directory path or a remote URL for the Laptop source code
-#                        directory. Defaults to the "laptop_src_directory" variable.
+#                        directory. Defaults to the "$laptop_local_repository_directory/src" variable.
 configure_mise() {
-    laptop_src_location=${1:-"$laptop_src_directory"}
+    local laptop_src_location=${1:-"$laptop_local_repository_directory/src"}
 
-    log_header "🔧 Configuring Mise"
+    log_header "🔧" "Configuring Mise"
 
     # Create a local Mise configuration file.
-    copy_file "$laptop_src_location/.mise_config.toml" "$laptop_local_directory/.mise_config.toml"
-    link_file "$laptop_local_directory/.mise_config.toml" "$HOME/.config/mise/config.toml"
+    copy_file "$laptop_src_location/.mise_config.toml" "$laptop_config_directory/.mise_config.toml"
+    link_file "$laptop_config_directory/.mise_config.toml" "$HOME/.config/mise/config.toml"
 
     # Create a local Default Gems file.
-    copy_file "$laptop_src_location/.default-gems" "$laptop_local_directory/.default-gems"
-    link_file "$laptop_local_directory/.default-gems" "$HOME/.default-gems"
+    copy_file "$laptop_src_location/.default-gems" "$laptop_config_directory/.default-gems"
+    link_file "$laptop_config_directory/.default-gems" "$HOME/.default-gems"
 
     # Trust the local configuration file to prevent prompts in the automated install.
     mise trust "$HOME/.config/mise/config.toml" || true
@@ -232,11 +309,11 @@ configure_mise() {
 # Configure SSH to use the SSH keys in 1Password.
 # Parameters:
 #   laptop_src_location: A local directory path or a remote URL for the Laptop source code
-#                        directory. Defaults to the "laptop_src_directory" variable.
+#                        directory. Defaults to the "$laptop_local_repository_directory/src" variable.
 configure_ssh() {
-    laptop_src_location=${1:-"$laptop_src_directory"}
+    local laptop_src_location=${1:-"$laptop_local_repository_directory/src"}
 
-    log_header "🔧 Configuring SSH"
+    log_header "🔧" "Configuring SSH"
 
     # Create the default SSH directory (if it doesn't already exist)
     # and configure SSH to lookup SSH keys in 1Password
@@ -244,7 +321,7 @@ configure_ssh() {
     chmod 700 "$HOME/.ssh"
 
     # Create a local .ssh_config configuration file from the Laptop template.
-    local_ssh_config_path="$laptop_local_directory/.ssh_config"
+    local_ssh_config_path="$laptop_config_directory/.ssh_config"
     copy_file "$laptop_src_location/.ssh_config" "$local_ssh_config_path"
     
     # Grant the owner read/write permissions to the local SSH configuration file.
@@ -255,7 +332,7 @@ configure_ssh() {
     link_file "$local_ssh_config_path" "$HOME/.ssh/config"
     
     # Create a local 1Password agent configuration file from the Laptop template.
-    local_onepassword_agent_path="$laptop_local_directory/agent.toml"
+    local_onepassword_agent_path="$laptop_config_directory/agent.toml"
     copy_file "$laptop_src_location/agent.toml" "$local_onepassword_agent_path"
     
     # Symbolicially link the local 1Password agent configuration to the default location.
@@ -271,113 +348,113 @@ configure_ssh() {
 # Configure ZSH to use the Laptop configuration files.
 # Parameters:
 #   laptop_src_location: A local directory path or a remote URL for the Laptop source code
-#                        directory. Defaults to the "laptop_src_directory" variable.
+#                        directory. Defaults to the "$laptop_local_repository_directory/src" variable.
 configure_zsh() {
-    laptop_src_location=${1:-"$laptop_src_directory"}
+    local laptop_src_location=${1:-"$laptop_local_repository_directory/src"}
 
-    log_header "🔧 Configuring ZSH"
+    log_header "🔧" "Configuring ZSH"
 
     # Create a local ZSH configuration file.
-    copy_file "$laptop_src_location/.zshrc" "$laptop_local_directory/.zshrc"
-    link_file "$laptop_local_directory/.zshrc" "$ZDOTDIR/.zshrc"
+    copy_file "$laptop_src_location/.zshrc" "$laptop_config_directory/.zshrc"
+    link_file "$laptop_config_directory/.zshrc" "$ZDOTDIR/.zshrc"
 
     # Create custom local ZSH configuration files.
-    copy_file "$laptop_src_location/.zshrc_aliases" "$laptop_local_directory/.zshrc_aliases"
-    copy_file "$laptop_src_location/.zshrc_methods" "$laptop_local_directory/.zshrc_methods"
+    copy_file "$laptop_src_location/.zshrc_aliases" "$laptop_config_directory/.zshrc_aliases"
+    copy_file "$laptop_src_location/.zshrc_methods" "$laptop_config_directory/.zshrc_methods"
 
     # Create a Atuin configuration file.
-    copy_file "$laptop_src_location/atuin_config.toml" "$laptop_local_directory/atuin_config.toml"
-    link_file "$laptop_local_directory/atuin_config.toml" "$HOME/.config/atuin/config.toml"
+    copy_file "$laptop_src_location/atuin_config.toml" "$laptop_config_directory/atuin_config.toml"
+    link_file "$laptop_config_directory/atuin_config.toml" "$HOME/.config/atuin/config.toml"
 }
 
 # Copy a file from the source path to the destination path if the file 
 # does not already exist. When "overwrite" is true, the file will be replaced.
 # Parameters:
-#   source: The path to the source file to copy or URL of the file to download.
-#   destination: The destination path where the file will be copied or downloaded.
+#   source_path: The path to the source file to copy or URL of the file to download.
+#   destination_path: The destination path where the file will be copied or downloaded.
 #   overwrite: A boolean indicating whether to replace the destination file; defaults to false.
 copy_file() {
-    source=$1
-    destination=$2
-    overwrite=${3:-false}
+    local source_path=$1
+    local destination_path=$2
+    local overwrite=${3:-false}
 
-    destination_directory="$(dirname "${destination}")"
+    local destination_directory="$(dirname "${destination_path}")"
     mkdir -p "$destination_directory"
 
-    if [[ $overwrite == true || ! -f "$destination" ]]; then
-        if [[ "$source" == http* ]]; then
-            log "Downloading file from \"$source\" to \"$destination\""
-            curl -o "$destination" "$source"
+    if [[ $overwrite == true || ! -f "$destination_path" ]]; then
+        if [[ "$source_path" == http* ]]; then
+            log "Downloading file from \"$source_path\" to \"$destination_path\""
+            curl -o "$destination_path" "$source_path"
         else
-            log "Copying file from \"$source\" to \"$destination\""
-            cp "$source" "$destination"
+            log "Copying file from \"$source_path\" to \"$destination_path\""
+            cp "$source_path" "$destination_path"
         fi
     else
-        log "No changes to file at \"$destination\"."
+        log "No changes to file at \"$destination_path\"."
     fi
 }
 
-clear_laptop_configs() {
-    log "Removing 1Password GitHub CLI configurations."
-    op plugin clear gh
-
-    log "Removing local Laptop configurations. Any changes made after the Laptop install will be" \
-        "removed."
-    rm -rf "$laptop_local_directory"
-}
-
-# Get secrets from 1Password and store them in global variables. This is a seperate method to
+# Get secrets from 1Password and store them in global variables. This is a separate method
 # so secrets can be gathered at the start of the script to prevent user interactions in the 
 # middle of a lengthy script.
 get_secrets() {
-    log_header "🔐 Gathering Secrets"
+    log_header "🔐" "Gathering Secrets"
 
     # Make sure 1Password has an account configured and app integration enabled.
     if [[ $(op account list --format=json 2>/dev/null) == "[]" ]]; then
-        exit_with_error "There are no accounts configured for use with 1Password CLI. You must"\
+        log_error "There are no accounts configured for use with 1Password CLI. You must"\
                 "enable app integration and then rerun this script.\n\n\t "\
                 "Guide: https://developer.1password.com/docs/cli/app-integration/"
+        exit 1
     fi
-    
-    log "Unlocking the 1Password CLI."
+
+    log_attention "Requesting Unlock of 1Password to access the following information:" \
+        "\n\n1. Item: \"$laptop_secret_item_name_git\"" \
+        "\n   * Field: \"$laptop_secret_field_name_git_email\"" \
+        "\n   * Field: \"$laptop_secret_field_name_git_username\"" \
+        "\n   * Field: \"$laptop_secret_field_name_git_name\"" \
+        "\n\n2. Item: \"$laptop_secret_item_name_ssh_key\"" \
+        "\n   * Field: \"$laptop_secret_field_name_ssh_key_public\""
+
     $(op signin)
-    
-    log "Retrieving fields \"$field_name_git_email\", \"$field_name_git_name\", and" \
-        "\"$field_name_git_username\" from 1Password item \"$item_name_git\"."
-    
-    git_email=$(op item get "$item_name_git" --fields "$field_name_git_email")
-    git_name=$(op item get "$item_name_git" --fields "$field_name_git_name")
-    git_username=$(op item get "$item_name_git" --fields "$field_name_git_username")
 
+    log "Retrieving fields \"$laptop_secret_field_name_git_email\", \"$laptop_secret_field_name_git_name\", and" \
+        "\"$laptop_secret_field_name_git_username\" from 1Password item \"$laptop_secret_item_name_git\"."
+
+    git_email=$(op item get "$laptop_secret_item_name_git" --fields "$laptop_secret_field_name_git_email")
+    git_name=$(op item get "$laptop_secret_item_name_git" --fields "$laptop_secret_field_name_git_name")
+    git_username=$(op item get "$laptop_secret_item_name_git" --fields "$laptop_secret_field_name_git_username")
     if [[ -z "$git_email" || -z "$git_name" || -z "$git_username" ]]; then
-        exit_with_error "Failed to lookup secret fields \"email\", \"name\", and \"username\"" \
-                        "from item \"GitHub\" in 1Password. Make sure they exist."
+        log_error "Failed to lookup secret fields \"$laptop_secret_field_name_git_email\", \"$laptop_secret_field_name_git_name\", and \"$laptop_secret_field_name_git_username\"" \
+                        "from item \"$laptop_secret_item_name_git\" in 1Password. Make sure they exist."
+        exit 1
     fi
 
-    log "Retrieving field \"$field_name_ssh_key_public\" from 1Password item \"$item_name_ssh_key\"."
+    log "Retrieving field \"$laptop_secret_field_name_ssh_key_public\" from 1Password item \"$laptop_secret_item_name_ssh_key\"."
     
-    git_ssh_public_key=$(op item get "$item_name_ssh_key" --fields "$field_name_ssh_key_public")
+    git_ssh_public_key=$(op item get "$laptop_secret_item_name_ssh_key" --fields "$laptop_secret_field_name_ssh_key_public")
 
     if [[ -z "$git_ssh_public_key" ]]; then
-        exit_with_error "Failed to lookup secret fields \"public keyl\" from item" \
-                        "\"GitHub\" in 1Password. Make sure it exists."
+        log_error "Failed to lookup secret field \"$laptop_secret_field_name_ssh_key_public\" from item" \
+                        "\"$laptop_secret_item_name_ssh_key\" in 1Password. Make sure it exists."
+        exit 1
     fi
 }
 
 # Install Xcode Command Line Tools, like git
 install_apple_developer_tools() {
     if ! xcode-select -p &> /dev/null; then
-        log_header "🍏  Installing Apple's Developer Tools"
+        log_header "🍏" "Installing Apple's Developer Tools"
         xcode-select --install
 
-        log_header "🍏  Accepting the Apple Xcode License"
+        log_header "🍏" "Accepting the Apple Xcode License"
         sudo xcodebuild -license accept
     fi
 }
 
 # Install applications using Homebrew
 install_apps() {
-    log_header "🔧 Installing Homebrew Applications"
+    log_header "🔧" "Installing Homebrew Applications"
 
     brew bundle --file=- <<EOF
     brew 'atuin' # https://atuin.sh
@@ -401,17 +478,17 @@ EOF
         rustup-init -y
     fi
 
-    log_header "🔧 Installing Applications"
+    log_header "🔧" "Installing Applications"
 
     if ! brew list --cask visual-studio-code &>/dev/null; then
-        log_header "🔧 Installing Visual Studio Code"
+        log_header "🔧" "Installing Visual Studio Code"
         brew install --cask visual-studio-code
     else
         log "Visual Studio Code is already installed"
     fi
 
     if ! brew list --cask 1password-cli &>/dev/null; then
-        log_header "🔧 Installing 1Password CLI"
+        log_header "🔧" "Installing 1Password CLI"
         brew install --cask 1password-cli
     else
         log "1Password CLI is already installed."
@@ -419,34 +496,21 @@ EOF
 
     install_mise_tools
     install_or_update_nvm
-
-}
-
-# Run the custom installation script if it exists on the local machine.
-install_custom() {
-    log_header "🪄  Running Customizations"
-    if [[ -f "$laptop_custom_install_script" ]]; then
-        log "Running local customization script at \"$laptop_custom_install_script\""
-        chmod +x "$laptop_custom_install_script"
-        "$laptop_custom_install_script"
-    else
-        log "No customizations found at \"$laptop_custom_install_script\"."
-    fi
 }
 
 # Install and configure the user's PATH to include Homebrew. Or update 
 # Homebrew if it's already installed.
 install_or_update_homebrew() {
     if [[ $(command -v brew) == "" ]]; then
-        log_header "🍺 Installing Hombrew"
+        log_header "🍺" "Installing Homebrew"
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
         # Add Homebrew to the user's PATH, if it's not already there.
-        if [[ ":$PATH:" == *":$HOMEBREW_PREFIX/bin:"* ]]; then
+        if [[ ":$PATH:" != *":$HOMEBREW_PREFIX/bin:"* ]]; then
             export PATH=$HOMEBREW_PREFIX/bin:$PATH
         fi
     else
-        log_header "🍺 Updating Homebrew"
+        log_header "🍺" "Updating Homebrew"
         brew update --force # https://github.com/Homebrew/brew/issues/1151
     fi
 }
@@ -455,7 +519,7 @@ install_or_update_homebrew() {
 # If NVM is already installed, it will update NVM to the latest version.
 # Verifies that NVM is installed and working by checking the version.
 install_or_update_nvm() {
-    log_header "🔧 Installing or updating Node Version Manager (NVM)"
+    log_header "🔧" "Installing or updating Node Version Manager (NVM)"
 
     # The PROFILE=/dev/null will prevent the setup script from updating
     # the bash profile(s), as this is already configured by the Laptop script.
@@ -470,9 +534,9 @@ install_or_update_nvm() {
 
     # Verify that nvm is installed and working.
     if command -v nvm >/dev/null 2>&1; then
-        echo "\n✅ Node Version Manager (NVM) version $(nvm --version) is installed."
+        log "Node Version Manager (NVM) version $(nvm --version) is installed."
     else
-        echo "\n❌ Node Version Manager (NVM) installation failed.\n" >&2
+        log_error "Node Version Manager (NVM) installation failed."
     fi
 }
 
@@ -481,7 +545,7 @@ install_mise_tools() {
     # Create the default global Mise configuration file, if it doesn't already exist
     configure_mise
 
-    log_header "🔧 Installing Mise Tools"
+    log_header "🔧" "Installing Mise Tools"
 
     # Add Cargo to the PATH, if it's not already there.
     if ! echo "$PATH" | grep -q "$HOME/.cargo/bin"; then
@@ -494,8 +558,8 @@ install_mise_tools() {
 
 # Returns zero when the Laptop script is considered installed locally, otherwise returns one.
 is_laptop_installed() {
-    if [ -d "$laptop_repo_directory" ]; then
-        return 0 # Labtop is already installed.
+    if [ -d "$laptop_local_repository_directory" ]; then
+        return 0 # Laptop is already installed.
     else
         return 1 # Laptop is not yet installed.
     fi
@@ -504,44 +568,333 @@ is_laptop_installed() {
 # Create a soft symbolic link from the source file to the destination file, overwriting the link
 # if it already exists.
 # Parameters:
-#   source: The path to the source file to copy or URL of the file to download.
-#   destination: The destination path where the file will be copied or downloaded.
+#   source_path: The path to the source file to copy or URL of the file to download.
+#   destination_path: The destination path where the file will be copied or downloaded.
 link_file() {
-    source="$1"
-    destination="$2"
+    local source_path="$1"
+    local destination_path="$2"
 
     # The "ln" command will fail if the directories in the destination 
     # path do not exist. Create all the destination directories, if they do not exist.
-    mkdir -p "$(dirname "$destination")"
+    mkdir -p "$(dirname "$destination_path")"
 
-    log "Creating a new symbolic link from \"$source\" to \"$destination\""
-    ln -sf "$source" "$destination"
+    log "Creating a new symbolic link from \"$source_path\" to \"$destination_path\""
+    ln -sf "$source_path" "$destination_path"
+}
+
+# Display a message to the user.
+log() {
+    print -- "    [$(date '+%T')] $*\n"
+}
+
+# Display all global configuration settings. Used for debugging purposes only.
+log_config() {
+    log_header "⚙️ " "Global Configuration Settings"
+
+    print "Environment Variables:"
+    print "  LAPTOP_CODE_DIRECTORY:                    \"$LAPTOP_CODE_DIRECTORY\""
+    print "  LAPTOP_CUSTOM_CONFIG_SCRIPT:              \"$LAPTOP_CUSTOM_CONFIG_SCRIPT\""
+    print "  LAPTOP_CUSTOM_SCRIPT_DIRECTORY:           \"$LAPTOP_CUSTOM_SCRIPT_DIRECTORY\""
+    print "  LAPTOP_CONFIG_DIRECTORY:                  \"$LAPTOP_CONFIG_DIRECTORY\""
+    print "  LAPTOP_LOCAL_REPOSITORY_DIRECTORY:        \"$LAPTOP_LOCAL_REPOSITORY_DIRECTORY\""
+    print "  LAPTOP_REMOTE_BASE_URL:                   \"$LAPTOP_REMOTE_BASE_URL\""
+    print "  LAPTOP_REMOTE_SSH_URL:                    \"$LAPTOP_REMOTE_SSH_URL\""
+    print "  LAPTOP_SECRET_ITEM_NAME_GIT:              \"$LAPTOP_SECRET_ITEM_NAME_GIT\""
+    print "  LAPTOP_SECRET_FIELD_NAME_GIT_EMAIL:       \"$LAPTOP_SECRET_FIELD_NAME_GIT_EMAIL\""
+    print "  LAPTOP_SECRET_FIELD_NAME_GIT_NAME:        \"$LAPTOP_SECRET_FIELD_NAME_GIT_NAME\""
+    print "  LAPTOP_SECRET_FIELD_NAME_GIT_USERNAME:    \"$LAPTOP_SECRET_FIELD_NAME_GIT_USERNAME\""
+    print "  LAPTOP_SECRET_ITEM_NAME_SSH_KEY:          \"$LAPTOP_SECRET_ITEM_NAME_SSH_KEY\""
+    print "  LAPTOP_SECRET_FIELD_NAME_SSH_KEY_PUBLIC:  \"$LAPTOP_SECRET_FIELD_NAME_SSH_KEY_PUBLIC\""
+    print "  LAPTOP_TRASH_DIRECTORY:                   \"$LAPTOP_TRASH_DIRECTORY\""
+
+    print "\nDirectories:"
+    print "  laptop_code_directory:                    \"$laptop_code_directory\""
+    print "  laptop_config_directory:                  \"$laptop_config_directory\""
+    print "  laptop_custom_script_directory:           \"$laptop_custom_script_directory\""
+    print "  laptop_local_repository_directory:        \"$laptop_local_repository_directory\""
+    
+    print "\nRemote Repository:"
+    print "  laptop_remote_base_url:                   \"$laptop_remote_base_url\""
+    print "  laptop_remote_ssh_url:                    \"$laptop_remote_ssh_url\""
+    
+    print "\n1Password Secret References:"
+    print "  laptop_secret_item_name_git:              \"$laptop_secret_item_name_git\""
+    print "  laptop_secret_field_name_git_email:       \"$laptop_secret_field_name_git_email\""
+    print "  laptop_secret_field_name_git_name:        \"$laptop_secret_field_name_git_name\""
+    print "  laptop_secret_field_name_git_username:    \"$laptop_secret_field_name_git_username\""
+    print "  laptop_secret_item_name_ssh_key:          \"$laptop_secret_item_name_ssh_key\""
+    print "  laptop_secret_field_name_ssh_key_public:  \"$laptop_secret_field_name_ssh_key_public\""
+    
+    print "\nCustom Script Paths:"
+    print "  laptop_custom_config_script:              \"$laptop_custom_config_script\""
+    print "  laptop_custom_pre_install_script:         \"$laptop_custom_pre_install_script\""
+    print "  laptop_custom_post_install_script:        \"$laptop_custom_post_install_script\""
+    print "  laptop_custom_pre_uninstall_script:       \"$laptop_custom_pre_uninstall_script\""
+    print "  laptop_custom_post_uninstall_script:      \"$laptop_custom_post_uninstall_script\"\n"
+}
+
+# Display an attention message to the user.
+# Parameters:
+#   $*: The attention message to display to the user.
+log_attention() {
+    local prefix=" 🟠 [$(date '+%T')] ATTENTION: "
+    
+    # Indent so that text wraps into a nice paragraph after the prefix.
+    local indent="${(l:$((${#prefix}+1)):: :)}"  
+    
+    # Replaces escape sequences like a new line "\n" with the indentation for wrapping text.
+    print "$*" | sed "1s/^/$prefix/;2,\$s/^/$indent/"
+    print ""
+}
+
+# Prompt the user with a custom message. Returns zero if the user confirms 
+# with "Y" or an empty string, (ie. presses enter), otherwise returns one.
+# Parameters:
+#   $*: The prompt message to display to the user.
+log_prompt() {
+    read "response? 🤨 $* "
+    print -- ""
+
+    if [[ -z $response || $response =~ ^[Yy] ]]; then
+        # User confirmed with an empty response (ie. pressed enter) or the letter "Y".
+        return 0
+    else
+        # User declined by entering any value (length > zero) that is not "Y".
+        return 1
+    fi
+}
+
+# Prompt the user to continue.
+# Returns zero if the user confirms with "Y" or an empty string, 
+# (ie. presses enter), otherwise returns one.
+log_prompt_continue() {
+    log_prompt "Ready to continue? [Y/n]"
+}
+
+# Display a terminal command to the user.
+# Parameters:
+#   $*: The terminal command to display.
+log_command() {
+    print -- "\n 🖥️   TERMINAL COMMAND: "$*""
+    print -- "    ~~~~~~~~~~~~~~~~~\n"
+}
+
+# Display an error message to the user.
+# Parameters:
+#   $*: The error message to display to the user.
+log_error() {
+    local prefix=" 🔴 [$(date '+%T')] ERROR: "
+    
+    # Indent so that text wraps into a nice paragraph after the prefix.
+    local indent="${(l:$((${#prefix}+1)):: :)}"  
+    
+    # Replaces escape sequences like a new line "\n" with the indentation for wrapping text.
+    print "$*" | sed "1s/^/$prefix/;2,\$s/^/$indent/"
+    print ""
+}
+
+# Display a distinct header message to the user.
+# Parameters:
+#   emoji: The emoji to display before the header text
+#   text: The header text to display (will be uppercased)
+log_header() {
+    local emoji="$1 "
+    local text="${(U)2}"
+    local dashes="${(l:${#text}::~:)}"
+    print -- "\n $emoji $text"
+    print -- "     $dashes\n"
+}
+
+# Display the current secrets stored in memory. Used for debugging purposes only.
+log_secrets() {
+    log_header "🔐" "Current Secrets in Memory"
+
+    log "  git_email:          \"$git_email\""
+    log "  git_name:           \"$git_name\""
+    log "  git_ssh_public_key: \"$git_ssh_public_key\""
+    log "  git_username:       \"$git_username\"\n"
+}
+
+# Remove local Laptop configurations by deleting the directory "$laptop_config_directory"
+# and clearing the 1Password GitHub CLI plugin configurations.
+# Parameters:
+#   require_confirmation: A boolean indicating whether to prompt the user for confirmation
+#                         before removing the configurations. Defaults to true.
+remove_laptop_configs() {
+    local require_confirmation="${1:-true}"
+
+    if [[ $require_confirmation == true ]]; then
+        local attention_text="The Laptop application configurations stored in \"$laptop_config_directory\""
+        attention_text+="\nwill be removed, including their symbolic links. Do you want to continue?"
+
+        log_attention "$attention_text"
+
+        if ! log_prompt_continue; then
+            log "User declined to remove local Laptop configurations at path \"$laptop_config_directory\"."
+            return
+        fi
+    fi
+
+    log "Removing 1Password GitHub CLI configurations."
+    op plugin clear gh
+
+    log "Removing symbolic links to Laptop configuration files."
+    unlink_file "$HOME/.config/1Password/ssh/agent.toml"
+    unlink_file "$HOME/.config/atuin/config.toml"
+    unlink_file "$HOME/.config/mise/config.toml"
+    unlink_file "$HOME/.default-gems"
+    unlink_file "$HOME/.gitconfig"
+    unlink_file "$HOME/.ssh/config"
+    unlink_file "$ZDOTDIR/.zshrc"
+
+    log "Removing local Laptop configurations at path \"$laptop_config_directory\"."
+    trash "$laptop_config_directory"
+}
+
+# Validate that a named variable exists and has a non-empty string value.
+require_non_empty_string_variable() {
+    local var_name="$1"
+    local var_value="${(P)var_name}"
+
+    if [[ -z "${var_value//[[:space:]]/}" ]]; then
+        log_error "The variable \"$var_name\" must be set to a valid value for Laptop to continue."
+        exit 1
+    fi
+}
+
+# Run a custom script located at the given path, if it exists, and ask for confirmation
+# before running it, unless confirmation is disabled.
+# Parameters:
+#   custom_script_path:  The path to the custom script to run.
+#   custom_script_name:  A friendly name for the script, used in log messages. Defaults to
+#                        "custom script" if not provided.
+#   require_confirmation: A boolean indicating whether to prompt the user for confirmation
+#                         before running the script. Defaults to true.
+run_custom_script() {
+    local custom_script_path="$1"
+    local custom_script_name="${2:-custom script}"
+    local require_confirmation="${3:-true}"
+
+    if [ -f "$custom_script_path" ]; then
+        log_header "🏃" "$custom_script_name"
+
+        # Confirm user wants to run the custom script, unless confirmation is disabled
+        if [[ $require_confirmation == true ]]; then
+            log_attention "Found $custom_script_name at path \"$custom_script_path\"."
+            if ! log_prompt "Would you like to run this file? [Y/n]"; then
+                log "User declined to run the $custom_script_name."
+                return
+            fi
+        fi
+
+        log "Running the $custom_script_name at path \"$custom_script_path\""
+
+        # Execute the script in the current shell environment.
+        # This is risky, so make sure to only run scripts from trusted sources.
+        set -a
+        source "$custom_script_path"
+        set +a
+    fi 
+}
+
+# Move the given file or directory to the trash directory for deletion on restart.
+# Parameters:
+#   path_to_trash: The path to the file or directory to move to the trash.
+trash() {
+    local path_to_trash="$1"
+
+    # Validate argument was provided. Script should terminate if a deletion
+    # operation was unsuccessful to prevent unknown states.
+    if [[ -z "$path_to_trash" ]]; then
+        log_error "trash() requires a path argument."
+        exit 1
+    fi
+
+    # Remove trailing slashes for consistent basename behavior
+    path_to_trash="${path_to_trash%/}"
+
+    # Create a timestamp using nanoseconds to avoid file name collisions.
+    local timestamp="$(date +%s.%N)"
+    local new_path="$laptop_trash_directory/$(basename "$path_to_trash").bkp.$timestamp"
+
+    # Check for files, directories, and symlinks (including broken ones)
+    if [[ -e "$path_to_trash" || -L "$path_to_trash" ]]; then
+        mkdir -p "$laptop_trash_directory"
+        log "Moving \"$path_to_trash\" to \"$new_path\". It will be deleted when your computer restarts."
+        mv "$path_to_trash" "$new_path"
+    else
+        log "Nothing exists at path \"$path_to_trash\"."
+    fi
+}
+
+# Remove a symbolic link from the destination, if it exists. This reverses
+# the operation of "link_file" method.
+# Parameters:
+#   destination_path: The symbolic link to be removed.
+unlink_file() {
+    local destination_path="$1"
+
+    # Validate argument was provided
+    if [[ -z "$destination_path" ]]; then
+        log_error "unlink_file() requires a valid \"destination_path\" argument."
+        exit 1
+    fi
+
+    # Remove trailing slashes for consistent behavior
+    destination_path="${destination_path%/}"
+
+    # Check if path exists and is a symbolic link
+    if [[ -L "$destination_path" ]]; then
+        log "Removing the symbolic link from \"$destination_path\""
+        rm "$destination_path"
+    else
+        log "No symbolic link exists at \"$destination_path\"."
+    fi
 }
 
 # Update the local Laptop repository, pulling down all new changes. If there are local changes the
 # user will be prompted to stash those changes before pulling. If the user declines the update will
 # be cancelled, but the script will continue.
 update_laptop_repository() {
-    pushd $laptop_repo_directory > /dev/null
+    pushd "$laptop_local_repository_directory" > /dev/null
 
-    log_header "🔁 Updating Laptop Repository"
+    log_header "🔁" "Updating Laptop Repository"
 
     # If there are changes in the local repository, ask the user if 
     # they want to stash and pull the latest changes.
     if [[ `git status --porcelain` || $(git rev-parse --abbrev-ref HEAD) != "main" ]]; then
-        log "$unsaved_changes_prompt"
-        read "response?Continue without pulling the latest changes? [Y/n]? "
 
-        if [[ -z $response || $response =~ ^[Yy] ]]; then
-            log "\nSkipped pulling the latest changes from the remote Laptop repository."
+        # Inform the user that there are unsaved changes in the Laptop git repository.
+        local attention_text="Cannot pull the latest changes from the remote Laptop repository, "
+        attention_text+="\nbecause there are local changes or you are not on the \"main\" branch."
+        attention_text+="\n\n"
+        attention_text+="Y:  Proceed without the latest changes from the remote Laptop repository."
+        attention_text+="\n\n"
+        attention_text+="    OR"
+        attention_text+="\n\n"
+        attention_text+="N:  Stash the local changes, then pull the latest from the remote Laptop"
+        attention_text+="\n    repository. Reapply the local changes with \"git stash pop\" command."
+        
+        # Ask how they want to proceed.
+        local attention_prompt="Continue without pulling the latest changes? [Y/n]"
+        
+        log_attention "$attention_text"
+        if log_prompt "$attention_prompt"; then
+            # User chose to continue without pulling the latest changes.
+            log "Skipped pulling the latest changes from the remote Laptop repository."
+            
             return
         else
-            log "\nStashing local changes.\n"
+            # User chose to stash the local changes and pull latest.
+            attention_text="Stashing local changes. After Laptop completes you can restore those changes with:\n"
+            attention_text+=$(log_command "cd '$laptop_local_repository_directory' && git stash pop")
+            log_attention "$attention_text"
+
             git stash
         fi
     fi
 
-    log "\nChecking out the \"main\" branch and pulling changes.\n"
+    log "Checking out the \"main\" branch and pulling changes."
     git fetch
     git checkout main
     git pull origin main
@@ -550,22 +903,62 @@ update_laptop_repository() {
 }
 
 
+################################################################################
 # Command Methods
+################################################################################
 
+# Create a custom configuration file for Laptop that the user can modify.
+configure_laptop_script() {
+    log_header "🔧" "Setup Custom Laptop Configuration"
+    
+    # By default, use the remote Laptop repository source files when configuring the computer.
+    local laptop_examples_location="$laptop_remote_base_url/examples"
+
+    if is_laptop_installed; then
+        # When Laptop repository is available locally, use the local files for configuration
+        laptop_examples_location="$laptop_local_repository_directory/examples"
+    fi
+
+    copy_file "$laptop_examples_location/custom_config.sh" "$laptop_custom_config_script"
+
+    local attention_prompt="Open the custom configuration file now? [Y/n]"
+    local attention_text="Customize Laptop by modifying the file \"$laptop_custom_config_script\"."
+    
+    log_attention "$attention_text"
+    
+    if log_prompt "$attention_prompt"; then
+        # Open the custom configuration file for editing in VS code if installed, otherwise TextEdit.
+        if [ -d "/Applications/Visual Studio Code.app" ]; then
+            code "$laptop_custom_config_script"
+        else
+            open -e "$laptop_custom_config_script"
+        fi
+    fi
+}
+
+# Laptop Install will install and configure the computer for development. The
+# command is idempotent so you can run it as many times as you like. To reset
+# all local configurations and re-apply the default Laptop configurations, use
+# the --force flag.
+# Parameters:
+#   force_flag: A boolean indicating whether to force reinstallation of all configurations.
 install() {
-    force_flag="$1"
+    local force_flag="$1"
 
-    log_title "💻 Configuring your Laptop"
+    log_header "💻" "Configuring your Laptop"
+
+    # Run the user's custom pre-install script.
+    run_custom_script "$laptop_custom_pre_install_script" "pre-install script"
 
     # By default, use the remote Laptop repository source files when configuring the computer.
-    local laptop_src_location=$remote_laptop_src_directory
+    local laptop_src_location="$laptop_remote_base_url/src"
     
     if is_laptop_installed; then
         # Prompt the user for access to 1Password before long running tasks.
         get_secrets
 
         # Use the local files for configuration
-        laptop_src_location=$laptop_src_directory
+        laptop_src_location="$laptop_local_repository_directory/src"
 
         # Update the script's source code before continuing
         update_laptop_repository
@@ -574,85 +967,149 @@ install() {
     if [[ $force_flag == true ]]; then
         # Delete all local configurations so that they will be recreated with the default values.
         # Effectively removing any local changes made after the script was initially run.
-        clear_laptop_configs
+        remove_laptop_configs false
     fi
 
     install_apple_developer_tools
     install_or_update_homebrew
     install_apps
-
     configure_ssh "$laptop_src_location"
     configure_git "$laptop_src_location"
     configure_zsh "$laptop_src_location"
 
     configure_gh
 
-    install_custom
-
     clone_laptop_repository
+
+    # Run the user's custom post-install script.
+    run_custom_script "$laptop_custom_post_install_script" "post-install script"
 
     clear_secrets
 
-    log_title "🎉 Done! Open a new shell to complete the installation."
+    log_header "🎉" "Installation is complete"
+    log_attention "Close this terminal session and start a new one to use the updated configurations.\n"
 }
 
-# Remove everything this script added during installation.
+# Laptop Uninstall command will reverse the "Install" command. Removing anything
+# installed or configured by the Laptop script. The command is idempotent so you
+# can run it as many times as you like.
+# Parameters:
+#   force_flag: A boolean indicating whether to skip confirmation prompts.
 uninstall() {
-    # TODO: This method is incomplete at the moment.
+    local force_flag=${1:-false}
+    
+    # Set to the opposite of the "force_flag", because when force is true we do not require confirmation.
+    local require_confirmation=$([[ $force_flag == true ]] && echo false || echo true)
 
-    log_header "🔨 Uninstalling Applications"
+    log_header "💻" "Unconfiguring your Laptop"
 
-    if brew list atuin &>/dev/null; then
-        brew uninstall atuin # https://atuin.sh
-    fi
+    # Run the user's custom pre-uninstall script.
+    run_custom_script "$laptop_custom_pre_uninstall_script" "pre-uninstall script"
+
+    log_header "🧨" "Uninstalling Applications"
+
+    uninstall_brew_package "1password-cli" "$require_confirmation"
+    uninstall_brew_package "atuin" false
+    uninstall_brew_package "awscli" false
+    uninstall_brew_package "curl" "$require_confirmation"
+    uninstall_brew_package "coreutils" "$require_confirmation"
+    uninstall_brew_package "gawk" "$require_confirmation"
+    uninstall_brew_package "gh" false
+    uninstall_brew_package "gmp" "$require_confirmation"
+    uninstall_brew_package "gnupg" "$require_confirmation"
+    uninstall_brew_package "libyaml" "$require_confirmation"
+    uninstall_brew_package "mise" false
+    uninstall_brew_package "openssl@3" "$require_confirmation"
+    uninstall_brew_package "postgresql" false
+    uninstall_brew_package "rustup-init" false
+    uninstall_brew_package "visual-studio-code" "$require_confirmation"
 
     uninstall_nvm
 
-    if brew list mise &>/dev/null; then
-        brew uninstall mise # https://mise.jdx.dev
-    fi
+    log_header "🧨" "Removing Application Data"
 
-    # TODO: Ask if you want to uninstall these
-    # brew uninstall gh
-    # brew uninstall coreutils
-    # brew uninstall curl
-    # brew uninstall gawk
-    # brew uninstall gnupg # https://www.gnupg.org
-    # rustup-init
+    # Move the Laptop configuration directory to the $trash_directory for deletion on restart.
+    remove_laptop_configs "$require_confirmation"
 
-    log_header "🗂️ Removing Application Data"
+    # Remove the mise data directory that contains the installed tools.
+    rm -rf "$HOME/.local/share/mise"
 
-    # Remove Laptop data
-    rm -rf "$laptop_local_directory"
+    # Remove the 1Password SSH agent socket symbolic link.
+    unlink_file "$HOME/.1password/agent.sock"
 
-    # Remove Atuin Application Data
-    rm -rf "$HOME/.config/atuin"
+    # Run the user's custom post-uninstall script.
+    run_custom_script "$laptop_custom_post_uninstall_script" "post-uninstall script"
 
-    log "\n🎉 Done. Restart your shell to complete the uninstall."
+    log_header "🎉" "Uninstall is complete"
+
+    local attention_text="Close this terminal session and start a new one to use the updated configurations.\n"
+    attention_text+="\nIf you want to remove the Laptop local code repository, run the following command:\n"
+    attention_text+=$(log_command "rm -rf \"$laptop_local_repository_directory\"")
+    
+    log_attention "$attention_text"
 }
 
-# Removes NVM if it is installed.
+# Uninstall a Homebrew package by name. Prompts the user for confirmation
+# before uninstalling, unless confirmation is disabled.
+# Parameters:
+#   package_name: The name of the Homebrew package to uninstall.
+#   require_confirmation: A boolean indicating whether to prompt the user for confirmation
+#                         before uninstalling the package. Defaults to true.
+uninstall_brew_package() {
+    local package_name="$1"
+    local require_confirmation=${2:-true}
+
+    # Check if the package is installed
+    if brew list "$package_name" &>/dev/null; then
+        
+        # Check if confirmation is required
+        if [[ $require_confirmation == true ]]; then
+            log_attention "Uninstall brew package \"$package_name\"?"
+
+            if ! log_prompt "Uninstall? [Y/n]"; then
+                log "User declined to uninstall brew package \"$package_name\"."
+                return 0
+            fi
+        fi
+        
+        log "Uninstalling brew package $package_name."
+        brew uninstall "$package_name"
+    fi
+}
+
+# Removes Node Version Manager (NVM), if it is installed.
 uninstall_nvm() {
     local nvm_dir="${NVM_DIR:-${XDG_CONFIG_HOME:-$HOME/.nvm}}"
+
     if [ -d "$nvm_dir" ]; then
-        echo "\n💥 Uninstalling Node Version Manager (NVM).\n"
+        log "Uninstalling Node Version Manager (NVM)."
         command -v nvm >/dev/null && nvm unload
         rm -rf "$nvm_dir"
     fi
 }
 
-# Interprit commandline arguments and run the appropriate methods.
+
+################################################################################
+# Entry Point
+################################################################################
+
+# Interpret commandline arguments and run the appropriate commands.
 main() {
-    install_flag=false
-    uninstall_flag=false
-    force_flag=false
+    local configure_flag=false
+    local install_flag=false
+    local uninstall_flag=false
+    local force_flag=false
 
-    additional_args=()
+    local additional_args=()
 
+    # Parse commandline arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -f|--force)
                 force_flag=true
+                ;;
+            configure)
+                configure_flag=true
                 ;;
             install)
                 install_flag=true
@@ -667,16 +1124,22 @@ main() {
         shift
     done
 
+    # Configure global variables
+    set_global_configurations
+
     # Run the appropriate command(s)
 
-    if [[ $uninstall_flag == true ]]; then
-        uninstall
+    if [[ $configure_flag == true ]]; then
+        configure_laptop_script
+
+    elif [[ $uninstall_flag == true ]]; then
+        uninstall $force_flag
     
     elif [[ $install_flag == true ]]; then
         install $force_flag
     
     # By default, run the install command.
-    else    
+    else
         install $force_flag
     fi
 }
@@ -684,7 +1147,34 @@ main() {
 # Hey... Thank you for reading this script before running some strangers code.
 
 
-# Run main only if the script is executed directly; not when sourced.
+################################################################################
+# Dynamic Global Variables
+################################################################################
+# Variables that are set dynamically based on the system configuration and
+# therefore need to be run after all methods have been defined, but before
+# methods are called. This should be placed at the bottom of the script.
+
+# Get the processor architecture from the operating system. Where "x86_64" 
+# is an Intel processor and "arm64" is an Apple Silicon processor.
+processor_architecture="$(uname -m)"
+
+# Set variables based on the processor architecture.
+# Exit the script if the processor architecture is not supported.
+if [ "$processor_architecture" = "arm64" ]; then
+    HOMEBREW_PREFIX="/opt/homebrew"
+elif [ "$processor_architecture" = "x86_64" ]; then
+    HOMEBREW_PREFIX="/usr/local"
+else
+    log_error "Unsupported processor architecture: $processor_architecture"
+    exit 1
+fi
+
+
+################################################################################
+# END OF SCRIPT
+################################################################################
+# This should be the last bit of code in the script. It will run the "main"
+# function only if the script is executed directly, not when it is sourced.
 if [[ "${(%):-%N}" == "$0" ]]; then
     main "$@"
 fi

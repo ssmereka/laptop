@@ -21,10 +21,12 @@ Laptop will configure your computer so it can communicate with external services
 
     | Type | Label | Example Value | Description |
     | -----| ----- | ------------- | ----------- |
-    | text | `name` | John Smith | Full name to be used in Git configuration |
-    | text | `email` | john@smith.com | Personal email address to be used in Git configuration |
+    | text | `Name` | John Smith | Full name to be used in Git configuration |
+    | text | `GitHub Email` | john@smith.com | Personal email address to be used in Git configuration |
     | password | `token` | github_pat_asdfjkl | GitHub Personal Access Token to be used with GitHub CLI |
-    | text | `username` | jsmith | GitHub username |
+    | text | `GitHub Username` | jsmith | GitHub username |
+
+    > Note: These are the default names and they are configurable with command `./mac configure`.
 
 3. Generate and save a new [SSH Key in 1Password] with the name `GitHub SSH Key`.
 
@@ -42,13 +44,29 @@ Laptop will configure your computer so it can communicate with external services
 
 1. Review the [mac] script. Avoid running a script you haven't read!
 
-2. Run the [mac] script. This will clone the Laptop git project to the directory `~/code/laptop` and setup your computer.
+2. **Optionally**, customize the script's [configurations].
+
+    ```bash
+    curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh -s -- configure
+    ```
+
+3. Run the [mac] script. This will clone the Laptop git project to the directory `~/code/ssmereka/laptop` and setup your computer.
 
     ```bash
     curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh
     ```
 
-3. Close and reopen your terminal so that the updated "~/.zshrc" runs and properly initializes your environment.
+
+### Available Commands
+The `mac` Laptop script has a few commands available to help with setup or teardown. These are the available commands:
+
+| Command | Example Usage | Description |
+| ------- | ------------- | ----------- |
+| `install` | `./mac install` | Install and configure your computer for development (default command if none specified) |
+| `install --force` | `./mac install --force` | Remove existing local configurations and then run the install command. |
+| `configure` | `./mac configure` | Create a local custom configuration file that you can use to customize Laptop's settings. |
+| `uninstall` | `./mac uninstall` | Uninstall all applications and remove all configurations applied by Laptop. |
+| `uninstall --force` | `./mac uninstall --force` | Run the uninstall command without any confirmation prompts. |
 
 
 ### Using Laptop
@@ -86,6 +104,7 @@ Want the latest updates? Just re-run the [mac] script again using `curl` or the 
 ```bash
 lt-update
 ```
+
 
 ## What does Laptop do?
 
@@ -167,14 +186,52 @@ You can add the following files to the `~/.config/laptop` directory:
 * `.zshrc_*` - Files with the `.zshrc_` prefix will be added to the end of the `.zshrc` file and loaded in each session.
 
 
-* `.custom_install.sh` - Script that will be run at the end of the Laptop `install`.
+### Environment Variables
+
+You can override Laptop's default configuration by setting environment variables before running the script. These variables allow you to customize paths, repository locations, and 1Password secret references without modifying the script itself. Environment variables will override both default values and values set in the user's custom configuration script.
+
+| Environment Variable | Default Value | Description |
+| -------------------- | ------------- | ----------- |
+| `LAPTOP_CODE_DIRECTORY` | `$HOME/code` | Directory where all coding projects will be cloned and stored |
+| `LAPTOP_CUSTOM_CONFIG_SCRIPT` | `$HOME/.laptop/custom_config.sh` | Path to your optional custom configuration script |
+| `LAPTOP_CUSTOM_SCRIPT_DIRECTORY` | `$HOME/.laptop` | Directory where your custom scripts are stored |
+| `LAPTOP_CONFIG_DIRECTORY` | `$HOME/.config/laptop` | Directory where local Laptop configurations are stored |
+| `LAPTOP_LOCAL_REPOSITORY_DIRECTORY` | `$HOME/code/ssmereka/laptop` | Directory where the local Laptop repository is cloned |
+| `LAPTOP_REMOTE_BASE_URL` | `https://raw.githubusercontent.com/ssmereka/laptop/refs/heads/main` | URL to the Laptop remote repository's root directory, for downloading files |
+| `LAPTOP_REMOTE_SSH_URL` | `git@github.com:ssmereka/laptop.git` | SSH URL for cloning the Laptop repository |
+| `LAPTOP_SECRET_ITEM_NAME_GIT` | `GitHub` | Name of the 1Password item containing Git configuration fields |
+| `LAPTOP_SECRET_FIELD_NAME_GIT_EMAIL` | `GitHub Email` | Name of the 1Password field containing your Git email |
+| `LAPTOP_SECRET_FIELD_NAME_GIT_NAME` | `Name` | Name of the 1Password field containing your Git name |
+| `LAPTOP_SECRET_FIELD_NAME_GIT_USERNAME` | `GitHub Username` | Name of the 1Password field containing your Git username |
+| `LAPTOP_SECRET_ITEM_NAME_SSH_KEY` | `GitHub SSH Key` | Name of the 1Password item containing your SSH key |
+| `LAPTOP_SECRET_FIELD_NAME_SSH_KEY_PUBLIC` | `public key` | Name of the 1Password field containing your public SSH key |
+| `LAPTOP_TRASH_DIRECTORY` | `/tmp/Laptop` | Directory where deleted files are moved temporarily, mac will delete these on a reboot |
+
+**Example usage:**
+
+```bash
+# Install Laptop with a custom code directory
+LAPTOP_CODE_DIRECTORY="$HOME/projects" curl -o- https://raw.githubusercontent.com/ssmereka/laptop/main/src/mac | zsh
+
+# Use a different 1Password item for Git credentials
+LAPTOP_SECRET_ITEM_NAME_GIT="Work GitHub" ./mac install
+```
 
 
 ### Custom Install Script
 
-You can extend the Laptop script with your own script(s). Adding a `zsh` script at path `~/.laptop/custom_install.sh` and Laptop will automatically run this script after setup. You might add a custom script to install internal tools or to have different setups per machine. Make sure your custom script(s) are idempotent and have the correct permissions to run. Laptop will never modify custom scripts or anything in the `~/.laptop` directory. 
+You can extend the Laptop install or uninstall by adding `zsh` scripts to the custom config directory. You may want to do this to install additional tools or tweak configurations per machine.
 
-Here's a `~/.laptop/.custom_install.sh` example:
+By default this directory is at path `~/.laptop/`. Laptop will automatically run the following scripts, if they exist in that directory:
+
+* `custom_pre_install.sh` - Run before a Laptop install command is executed.
+* `custom_post_install.sh` - Run after a Laptop install command is finished executing.
+* `custom_pre_uninstall.sh` - Run before a Laptop uninstall command is executed.
+* `custom_post_uninstall.sh` - Run after a Laptop uninstall command is finished executing.
+
+Custom scripts will be "sourced" so they run in the same shell as the Laptop script, as if they were all in the same file. This gives you access to all the variables and methods in the Laptop script. Use caution when assigning global variables and methods to avoid collisions, and make sure your scripts are idempotent and readable by the user running Laptop.
+
+Here is an example `custom_post_install.sh` script:
 
 ```zsh
 #!/bin/zsh
@@ -216,6 +273,7 @@ EOF
 [Ruby]: https://www.ruby-lang.org/en/
 [Ruby on Rails]: https://rubyonrails.org
 [Rust]: https://rustup.rs
+[configurations]: https://github.com/ssmereka/laptop/blob/main/examples/custom_config.sh
 [Signing SSH Key in GitHub]: https://developer.1password.com/docs/ssh/git-commit-signing
 [SSH Key in 1Password]: https://developer.1password.com/docs/ssh/get-started#step-1-generate-an-ssh-key
 [Visual Studio Code]: https://code.visualstudio.com
