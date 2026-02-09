@@ -480,22 +480,28 @@ EOF
 
     log_header "🔧" "Installing Applications"
 
-    if ! brew list --cask visual-studio-code &>/dev/null; then
-        log_header "🔧" "Installing Visual Studio Code"
-        brew install --cask visual-studio-code
-    else
-        log "Visual Studio Code is already installed"
-    fi
-
-    if ! brew list --cask 1password-cli &>/dev/null; then
-        log_header "🔧" "Installing 1Password CLI"
-        brew install --cask 1password-cli
-    else
-        log "1Password CLI is already installed."
-    fi
+    install_homebrew_cask "1password-cli"
+    install_homebrew_cask "claude-code"
+    install_homebrew_cask "netbirdio/tap/netbbird-ui"
+    install_homebrew_cask "visual-studio-code"
+    install_homebrew_cask "claude-code"
 
     install_mise_tools
     install_or_update_nvm
+}
+
+# Install a Homebrew Cask application if it is not already installed.
+# Parameters:
+#   cask_name: The name of the Homebrew Cask application to install.
+install_homebrew_cask() {
+    cask_name="$1"
+
+    if ! brew list --cask $cask_name &>/dev/null; then
+        log_header "🔧" "Installing $cask_name"
+        brew install --cask $cask_name
+    else
+        log "$cask_name is already installed"
+    fi
 }
 
 # Install and configure the user's PATH to include Homebrew. Or update 
