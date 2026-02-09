@@ -482,7 +482,7 @@ EOF
 
     install_homebrew_cask "1password-cli"
     install_homebrew_cask "claude-code"
-    install_homebrew_cask "netbirdio/tap/netbbird-ui"
+    install_homebrew_cask "netbirdio/tap/netbird-ui"
     install_homebrew_cask "visual-studio-code"
     install_homebrew_cask "claude-code"
 
