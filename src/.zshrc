@@ -5,6 +5,10 @@
 # Explicitly add Homebrew to the PATH, otherwise some terminals cannot find it.
 export PATH=/opt/homebrew/bin:$PATH
 
+# Explicitly add ~/.local/bin to the PATH, a common location for binaries used directly or by
+# tooling.
+export PATH="$HOME/.local/bin:$PATH"
+
 # Enable Homebrew autocompletion, 
 # https://formulae.brew.sh/formula/zsh-completions
 if type brew &>/dev/null; then
@@ -30,9 +34,12 @@ eval "$(op completion zsh)"; compdef _op op
 # Use the 1Password SSH Agent Integration so you do not need to enter the SSH key passphrases.
 export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
 
-# Source the 1Password alias for the GitHub CLI so it uses the Personal Access Token from 
-# 1Password for authentication.
-if [ -f "$HOME/.config/op/plugins.sh" ]; then
+# For interactive sessions we enable the 1Password CLI, enabling it to be used to query secrets.
+# A 1Password interactive prompt will be shown to the user if not already authenticated. This is
+# configured for the GitHub CLI which queries 1Password for a GitHub Personal Access Token (PAT).
+# For non-interactive sessions we should skip loading the 1Password CLI, preventing the interactive
+# prompts. Specifically this skips when stdin is connected to a TTY or if the GH_TOKEN is set.
+if [ -z "$GH_TOKEN" ] && [ -t 0 ] && [ -f "$HOME/.config/op/plugins.sh" ]; then
     source "$HOME/.config/op/plugins.sh"
 fi
 
