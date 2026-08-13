@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 # LAPTOP
-# Make with ❤️ by Scott Smereka
+# Crafted with ❤️ by Scott Smereka
 
 
 ################################################################################
@@ -14,6 +14,7 @@ laptop_code_directory=""
 laptop_config_directory=""
 laptop_custom_script_directory=""
 laptop_local_repository_directory=""
+laptop_log_directory=""
 laptop_remote_base_url=""
 laptop_remote_ssh_url=""
 
@@ -49,6 +50,7 @@ apply_environment_variables() {
     laptop_custom_script_directory="${LAPTOP_CUSTOM_SCRIPT_DIRECTORY:-$laptop_custom_script_directory}"
     laptop_config_directory="${LAPTOP_CONFIG_DIRECTORY:-$laptop_config_directory}"
     laptop_local_repository_directory="${LAPTOP_LOCAL_REPOSITORY_DIRECTORY:-$laptop_local_repository_directory}"
+    laptop_log_directory="${LAPTOP_LOG_DIRECTORY:-$laptop_log_directory}"
     laptop_remote_base_url="${LAPTOP_REMOTE_BASE_URL:-$laptop_remote_base_url}"
     laptop_remote_ssh_url="${LAPTOP_REMOTE_SSH_URL:-$laptop_remote_ssh_url}"
     laptop_secret_item_name_git="${LAPTOP_SECRET_ITEM_NAME_GIT:-$laptop_secret_item_name_git}"
@@ -87,6 +89,9 @@ set_global_configurations() {
 
     # Directory where a local copy of the Laptop repository will be cloned and stored.
     laptop_local_repository_directory="${LAPTOP_LOCAL_REPOSITORY_DIRECTORY:-$laptop_code_directory/ssmereka/laptop}"
+
+    # Directory where log files are stored for Laptop.
+    laptop_log_directory="${LAPTOP_LOG_DIRECTORY:-$HOME/Library/Logs/Laptop}"
 
     # A URL to the most recent Laptop code repository stored in GitHub. This should point
     # to the root directory so you can append file paths to navigate to files and folders
@@ -135,6 +140,7 @@ set_global_configurations() {
     require_non_empty_string_variable "laptop_custom_script_directory"
     require_non_empty_string_variable "laptop_config_directory"
     require_non_empty_string_variable "laptop_local_repository_directory"
+    require_non_empty_string_variable "laptop_log_directory"
     require_non_empty_string_variable "laptop_remote_base_url"
     require_non_empty_string_variable "laptop_remote_ssh_url"
     require_non_empty_string_variable "laptop_secret_item_name_git"
@@ -283,6 +289,27 @@ configure_git() {
 
     # Symbolically link the .gitconfig to the proper location.
     link_file "$local_gitconfig" "$HOME/.gitconfig"
+}
+
+# Configure the log directory for Laptop. This is where all log files will be stored.
+# Parameters:
+#   log_directory: A directory path where logs will be stored. 
+#                  Defaults to the "$laptop_log_directory" variable.
+configure_logs() {
+    local log_directory=${1:-$laptop_log_directory}
+
+    log_header "✍️" "Configuring Logs"
+
+    # Create the log directory if it doesn't already exist.
+    mkdir -p "$log_directory"
+
+    # Set permissions to:
+    # - Allow the owner to read, write, and execute log files.
+    # - Allow the group to read and write log files.
+    # - Allow others to read log files, but not write or execute them.
+    chmod 764 "$log_directory"
+
+    log "Laptop log directory is set to \"$log_directory\"."
 }
 
 # Configure Mise to use the Laptop configuration files.
@@ -481,13 +508,23 @@ EOF
     log_header "🔧" "Installing Applications"
 
     install_homebrew_cask "1password-cli"
-    install_homebrew_cask "claude-code"
-    install_homebrew_cask "netbirdio/tap/netbird-ui"
+    # install_homebrew_cask "netbirdio/tap/netbird-ui"
     install_homebrew_cask "visual-studio-code"
-    install_homebrew_cask "claude-code"
 
+    install_claude_code
     install_mise_tools
     install_or_update_nvm
+}
+
+# Install Claude Code using the official install script, if it is not already
+# installed. Note that using Homebrew to install would prevent automatic updates.
+install_claude_code() {
+    if ! command -v claude >/dev/null 2>&1; then
+        log_header "🔧" "Installing Claude Code"
+        curl -fsSL https://claude.ai/install.sh | bash
+    else
+        log "claude is already installed"
+    fi
 }
 
 # Install a Homebrew Cask application if it is not already installed.
@@ -1132,6 +1169,9 @@ main() {
 
     # Configure global variables
     set_global_configurations
+    
+    # Configure logging.
+    configure_logs
 
     # Run the appropriate command(s)
 

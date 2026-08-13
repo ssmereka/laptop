@@ -17,6 +17,9 @@ laptop_config_directory="$HOME/.config/laptop"
 # Directory where a local copy of the Laptop repository will be cloned and stored.
 laptop_local_repository_directory="$laptop_code_directory/ssmereka/laptop"
 
+# Directory where log files are stored for Laptop.
+laptop_log_directory="$HOME/Library/Logs/Laptop"
+
 # A URL to the most recent Laptop code repository stored in GitHub. This should point
 # to the root directory so you can append file paths to navigate to files and folders
 # in the repository.
