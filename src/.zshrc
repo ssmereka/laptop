@@ -39,8 +39,8 @@ export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agen
 # configured for the GitHub CLI which queries 1Password for a GitHub Personal Access Token (PAT).
 # For non-interactive sessions we should skip loading the 1Password CLI, preventing the interactive
 # prompts. Specifically this skips when stdin is connected to a TTY or if the GH_TOKEN is set.
-if [ -z "$GH_TOKEN" ] && [ -t 0 ] && [ -f /Users/scott/.config/op/plugins.sh ]; then
-    source /Users/scott/.config/op/plugins.sh
+if [ -z "$GH_TOKEN" ] && [ -t 0 ] && [ -f "$HOME/.config/op/plugins.sh" ]; then
+    source "$HOME/.config/op/plugins.sh"
 fi
 
 # Enable autocomplete for Flux CD CLI, 
